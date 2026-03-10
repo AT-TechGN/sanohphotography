@@ -1,0 +1,97 @@
+security:
+    # https://symfony.com/doc/current/security.html#registering-the-user-hashing-passwords
+    password_hashers:
+        Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
+
+    # https://symfony.com/doc/current/security.html#loading-the-user-the-user-provider
+    providers:
+        # used to reload user from session & other features (e.g. switch_user)
+        app_user_provider:
+            entity:
+                class: App\Entity\User
+                property: email
+
+    firewalls:
+        dev:
+            # Ensure dev tools and static assets are always allowed
+            pattern: ^/(_profiler|_wdt|assets|build)/
+            security: false
+        
+        # Login endpoint - ne nécessite pas d'authentification
+        login:
+            pattern: ^/api/login
+            stateless: true
+            json_login:
+                check_path: /api/login
+                username_path: email
+                password_path: password
+                success_handler: lexik_jwt_authentication.handler.authentication_success
+                failure_handler: lexik_jwt_authentication.handler.authentication_failure
+        
+        # Register endpoint - ne nécessite pas d'authentification
+        register:
+            pattern: ^/api/register
+            stateless: true
+            security: false
+        
+        # API endpoints - nécessitent JWT
+        api:
+            pattern: ^/api
+            stateless: true
+            jwt: ~
+        
+        # Main firewall pour le reste
+        main:
+            lazy: true
+            provider: app_user_provider
+
+    # Hiérarchie des rôles selon le cahier des charges
+    role_hierarchy:
+        ROLE_CLIENT: []
+        ROLE_EMPLOYE: [ROLE_CLIENT]
+        ROLE_PHOTOGRAPHE: [ROLE_EMPLOYE]
+        ROLE_ADMIN: [ROLE_PHOTOGRAPHE, ROLE_USER]
+
+    # Note: Only the *first* matching rule is applied
+    access_control:
+        # Endpoints publics
+        - { path: ^/api/login, roles: PUBLIC_ACCESS }
+        - { path: ^/api/register, roles: PUBLIC_ACCESS }
+        - { path: ^/api/docs, roles: PUBLIC_ACCESS }
+        - { path: ^/api/gallery, roles: PUBLIC_ACCESS, methods: [GET] }
+        - { path: ^/api/services, roles: PUBLIC_ACCESS, methods: [GET] }
+        - { path: ^/api/reviews, roles: PUBLIC_ACCESS, methods: [GET] }
+        - { path: ^/api/contact, roles: PUBLIC_ACCESS, methods: [POST] }
+        
+        # Endpoints réservés aux clients authentifiés
+        - { path: ^/api/bookings, roles: ROLE_CLIENT }
+        - { path: ^/api/my-albums, roles: ROLE_CLIENT }
+        
+        # Endpoints réservés aux employés
+        - { path: ^/api/admin/photos, roles: ROLE_EMPLOYE }
+        - { path: ^/api/admin/albums, roles: ROLE_EMPLOYE }
+        
+        # Endpoints réservés aux photographes
+        - { path: ^/api/admin/bookings, roles: ROLE_PHOTOGRAPHE }
+        - { path: ^/api/admin/services, roles: ROLE_PHOTOGRAPHE }
+        - { path: ^/api/admin/reviews, roles: ROLE_PHOTOGRAPHE }
+        
+        # Endpoints réservés aux administrateurs
+        - { path: ^/api/admin/employees, roles: ROLE_ADMIN }
+        - { path: ^/api/admin/users, roles: ROLE_ADMIN }
+        - { path: ^/api/admin/invoices, roles: ROLE_ADMIN }
+        - { path: ^/api/admin/dashboard, roles: ROLE_ADMIN }
+        
+        # Tout le reste de l'API nécessite au moins d'être authentifié
+        - { path: ^/api, roles: ROLE_CLIENT }
+
+when@test:
+    security:
+        password_hashers:
+            # Password hashers are resource-intensive by design to ensure security.
+            # In tests, it's safe to reduce their cost to improve performance.
+            Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface:
+                algorithm: auto
+                cost: 4 # Lowest possible value for bcrypt
+                time_cost: 3 # Lowest possible value for argon
+                memory_cost: 10 # Lowest possible value for argon

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Facture {{ invoice.invoiceNumber }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            line-height: 1.5;
+            color: #333;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 3px solid #000;
+            padding-bottom: 20px;
+        }
+        .company-name {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .invoice-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+        .info-section {
+            margin-bottom: 30px;
+        }
+        .info-section table {
+            width: 100%;
+        }
+        .info-section td {
+            padding: 5px;
+            vertical-align: top;
+        }
+        .label {
+            font-weight: bold;
+        }
+        .details-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+        .details-table th,
+        .details-table td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+        .details-table th {
+            background-color: #f4f4f4;
+            font-weight: bold;
+        }
+        .total {
+            text-align: right;
+            font-size: 16px;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+        .footer {
+            margin-top: 50px;
+            text-align: center;
+            font-size: 10px;
+            color: #666;
+            border-top: 1px solid #ddd;
+            padding-top: 20px;
+        }
+        .status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+        .status-paid {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .status-pending {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        .status-cancelled {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="company-name">PhotoBook Studio</div>
+        <div>Photographe Professionnel</div>
+        <div>Conakry, Guinée</div>
+        <div>Email: contact@photobook-studio.com | Tél: +224 620 00 00 00</div>
+    </div>
+
+    <div class="invoice-title">FACTURE {{ invoice.invoiceNumber }}</div>
+
+    <div class="info-section">
+        <table>
+            <tr>
+                <td width="50%">
+                    <div class="label">Facturé à :</div>
+                    <div>{{ invoice.booking.client.firstName }} {{ invoice.booking.client.lastName }}</div>
+                    <div>{{ invoice.booking.client.email }}</div>
+                    {% if invoice.booking.client.phone %}
+                    <div>Tél: {{ invoice.booking.client.phone }}</div>
+                    {% endif %}
+                </td>
+                <td width="50%" style="text-align: right;">
+                    <div><span class="label">Date d'émission :</span> {{ invoice.issuedAt|date('d/m/Y') }}</div>
+                    <div><span class="label">Date d'échéance :</span> {{ invoice.dueDate|date('d/m/Y') }}</div>
+                    <div><span class="label">Statut :</span> 
+                        <span class="status status-{{ invoice.status }}">
+                            {% if invoice.status == 'paid' %}PAYÉE
+                            {% elseif invoice.status == 'pending' %}EN ATTENTE
+                            {% else %}ANNULÉE{% endif %}
+                        </span>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <table class="details-table">
+        <thead>
+            <tr>
+                <th>Description</th>
+                <th>Date de séance</th>
+                <th>Heure</th>
+                <th>Durée</th>
+                <th style="text-align: right;">Montant</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>
+                    <strong>{{ invoice.booking.service.name }}</strong>
+                    {% if invoice.booking.notes %}
+                    <br><small>{{ invoice.booking.notes }}</small>
+                    {% endif %}
+                </td>
+                <td>{{ invoice.booking.scheduledDate|date('d/m/Y') }}</td>
+                <td>{{ invoice.booking.scheduledTime|date('H:i') }}</td>
+                <td>{{ invoice.booking.service.durationMin }} min</td>
+                <td style="text-align: right;">{{ invoice.amount }} GNF</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="total">
+        <div>Total à payer : <strong>{{ invoice.amount }} GNF</strong></div>
+    </div>
+
+    {% if invoice.notes %}
+    <div style="margin-top: 30px;">
+        <div class="label">Notes :</div>
+        <div>{{ invoice.notes }}</div>
+    </div>
+    {% endif %}
+
+    {% if invoice.status == 'paid' %}
+    <div style="margin-top: 30px; padding: 15px; background-color: #d4edda; border: 1px solid #c3e6cb;">
+        <strong>✓ PAYÉE</strong> le {{ invoice.paidAt|date('d/m/Y') }}
+        {% if invoice.paymentMethod %}
+        <br>Mode de paiement : {{ invoice.paymentMethod }}
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <div class="footer">
+        <p>Merci de votre confiance !</p>
+        <p>PhotoBook Studio - Tous droits réservés {{ 'now'|date('Y') }}</p>
+        <p>En cas de question, contactez-nous : contact@photobook-studio.com</p>
+    </div>
+</body>
+</html>

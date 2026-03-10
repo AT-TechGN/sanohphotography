@@ -1,0 +1,12 @@
+api_platform:
+    title: PhotoBook API
+    version: 1.0.0
+    enable_docs: true
+    enable_swagger: true
+    enable_re_doc: false
+    swagger:
+        versions: [3]
+    defaults:
+        stateless: true
+        cache_headers:
+            vary: ['Content-Type', 'Authorization', 'Origin']

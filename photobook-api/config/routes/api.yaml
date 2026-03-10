@@ -1,0 +1,9 @@
+# Routes API pour l'authentification
+api_login:
+    path: /api/login
+    methods: [POST]
+
+api_register:
+    path: /api/register
+    controller: App\Controller\Api\AuthController::register
+    methods: [POST]

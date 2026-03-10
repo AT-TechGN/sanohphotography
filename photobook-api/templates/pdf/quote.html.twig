@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Devis {{ invoice.invoiceNumber }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            line-height: 1.5;
+            color: #333;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 3px solid #000;
+            padding-bottom: 20px;
+        }
+        .company-name {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .quote-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 20px;
+            color: #0066cc;
+        }
+        .info-section {
+            margin-bottom: 30px;
+        }
+        .info-section table {
+            width: 100%;
+        }
+        .info-section td {
+            padding: 5px;
+            vertical-align: top;
+        }
+        .label {
+            font-weight: bold;
+        }
+        .details-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+        .details-table th,
+        .details-table td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+        .details-table th {
+            background-color: #f4f4f4;
+            font-weight: bold;
+        }
+        .total {
+            text-align: right;
+            font-size: 16px;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+        .footer {
+            margin-top: 50px;
+            text-align: center;
+            font-size: 10px;
+            color: #666;
+            border-top: 1px solid #ddd;
+            padding-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="company-name">PhotoBook Studio</div>
+        <div>Photographe Professionnel</div>
+        <div>Conakry, Guinée</div>
+        <div>Email: contact@photobook-studio.com | Tél: +224 620 00 00 00</div>
+    </div>
+
+    <div class="quote-title">DEVIS N° {{ invoice.invoiceNumber }}</div>
+
+    <div class="info-section">
+        <table>
+            <tr>
+                <td width="50%">
+                    <div class="label">Client :</div>
+                    <div>{{ invoice.booking.client.firstName }} {{ invoice.booking.client.lastName }}</div>
+                    <div>{{ invoice.booking.client.email }}</div>
+                    {% if invoice.booking.client.phone %}
+                    <div>Tél: {{ invoice.booking.client.phone }}</div>
+                    {% endif %}
+                </td>
+                <td width="50%" style="text-align: right;">
+                    <div><span class="label">Date du devis :</span> {{ invoice.issuedAt|date('d/m/Y') }}</div>
+                    <div><span class="label">Validité :</span> 30 jours</div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <table class="details-table">
+        <thead>
+            <tr>
+                <th>Prestation</th>
+                <th>Date souhaitée</th>
+                <th>Durée</th>
+                <th style="text-align: right;">Prix</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>
+                    <strong>{{ invoice.booking.service.name }}</strong>
+                    <br><small>{{ invoice.booking.service.description }}</small>
+                </td>
+                <td>{{ invoice.booking.scheduledDate|date('d/m/Y') }} à {{ invoice.booking.scheduledTime|date('H:i') }}</td>
+                <td>{{ invoice.booking.service.durationMin }} minutes</td>
+                <td style="text-align: right;">{{ invoice.amount }} GNF</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="total">
+        <div>Total estimé : <strong>{{ invoice.amount }} GNF</strong></div>
+    </div>
+
+    <div style="margin-top: 40px; padding: 15px; background-color: #f8f9fa; border-left: 4px solid #0066cc;">
+        <strong>Ce devis comprend :</strong>
+        <ul>
+            <li>Séance photo professionnelle de {{ invoice.booking.service.durationMin }} minutes</li>
+            <li>Retouche et sélection des meilleures photos</li>
+            <li>Livraison des photos en haute résolution</li>
+            <li>Album en ligne sécurisé</li>
+        </ul>
+    </div>
+
+    <div class="footer">
+        <p>Ce devis est valable 30 jours à compter de sa date d'émission.</p>
+        <p>Pour toute question ou réservation : contact@photobook-studio.com</p>
+        <p>PhotoBook Studio - Tous droits réservés {{ 'now'|date('Y') }}</p>
+    </div>
+</body>
+</html>
