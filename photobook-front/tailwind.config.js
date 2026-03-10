@@ -7,6 +7,20 @@ export default {
   ],
   theme: {
     extend: {
+      colors: {
+        sage: {
+          50: '#f3f7f4',
+          100: '#e6f0e8',
+          200: '#cfe1cf',
+          300: '#b6d2b0',
+          400: '#8fb589',
+          500: '#6b9766',
+          600: '#4d6f4d',
+          700: '#335244',
+          800: '#22382f',
+          900: '#0f1d18',
+        }
+      },
       animation: {
         'blob': 'blob 7s infinite',
       },

@@ -1,20 +1,35 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { 
-  CameraIcon, 
-  SparklesIcon, 
-  HeartIcon, 
+import { motion as Motion } from 'framer-motion';
+import {
+  HeartIcon,
   StarIcon,
   CalendarIcon,
+  ArrowRightIcon,
+  PlayIcon,
   PhotoIcon,
-  CheckCircleIcon
+  UserGroupIcon,
 } from '@heroicons/react/24/outline';
 import galleryService from '../services/galleryService';
+import { API_ASSETS_BASE } from '../services/api';
+import { buildSrcSet, defaultSizesForFeatured } from '../utils/imageHelpers';
 import reviewService from '../services/reviewService';
 import Loading from '../components/common/Loading';
 import useUIStore from '../stores/uiStore';
-import CountUp from 'react-countup';
+
+// Composant titre de section réutilisable
+const SectionHeading = ({ title, subtitle, align = 'center' }) => (
+  <div className={`max-w-2xl mx-auto mb-12 ${align === 'left' ? 'text-left max-w-none' : 'text-center'}`}>
+    {subtitle && (
+      <p className="text-sm font-semibold text-purple-600 dark:text-purple-400 mb-2 tracking-wide uppercase">
+        {subtitle}
+      </p>
+    )}
+    <h2 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
+      {title}
+    </h2>
+  </div>
+);
 
 const HomePageNew = () => {
   const [featuredPhotos, setFeaturedPhotos] = useState([]);
@@ -47,8 +62,8 @@ const HomePageNew = () => {
   };
 
   const openPhotoLightbox = (index) => {
-    const images = featuredPhotos.map(photo => ({
-      src: `http://localhost/photobook-api/public${photo.filePath}`,
+    const images = featuredPhotos.map((photo) => ({
+      src: `${API_ASSETS_BASE}${photo.filePath}`,
       alt: photo.album?.title || 'Photo',
       width: photo.width || 1920,
       height: photo.height || 1080,
@@ -60,10 +75,8 @@ const HomePageNew = () => {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
+      transition: { staggerChildren: 0.1 },
+    },
   };
 
   const itemVariants = {
@@ -71,11 +84,8 @@ const HomePageNew = () => {
     visible: {
       y: 0,
       opacity: 1,
-      transition: {
-        type: "spring",
-        stiffness: 100
-      }
-    }
+      transition: { type: 'spring', stiffness: 100 },
+    },
   };
 
   if (loading) {
@@ -83,140 +93,107 @@ const HomePageNew = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors duration-300">
-      {/* Hero Section - Modern & Elegant */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 dark:from-indigo-900 dark:via-purple-900 dark:to-pink-900">
-        {/* Animated Background Pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-0 left-0 w-96 h-96 bg-white rounded-full mix-blend-overlay filter blur-3xl animate-blob"></div>
-          <div className="absolute top-0 right-0 w-96 h-96 bg-yellow-200 rounded-full mix-blend-overlay filter blur-3xl animate-blob animation-delay-2000"></div>
-          <div className="absolute bottom-0 left-1/2 w-96 h-96 bg-pink-200 rounded-full mix-blend-overlay filter blur-3xl animate-blob animation-delay-4000"></div>
+    <div className="min-h-screen bg-white dark:bg-gray-950 transition-colors duration-300">
+      {/* Hero Section - Design Tailwind UI Blocks */}
+      <section className="relative pt-16 min-h-[85vh] flex items-center overflow-hidden">
+        {/* Background Image */}
+        {featuredPhotos[0] ? (
+          <div
+            className="absolute inset-0 bg-cover bg-center"
+            style={{ backgroundImage: `url(${API_ASSETS_BASE}${featuredPhotos[0].filePath})` }}
+          />
+        ) : (
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-900 via-gray-900 to-pink-900" />
+        )}
+        
+        {/* Overlay */}
+        <div className="absolute inset-0 bg-gray-950/60" />
+
+        {/* Decorative elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500/20 rounded-full blur-3xl" />
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-pink-500/20 rounded-full blur-3xl" />
         </div>
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-32">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+          <Motion.div
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="text-center"
+            className="max-w-3xl"
           >
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.2, type: "spring" }}
-              className="inline-flex items-center px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-white mb-6"
-            >
-              <CameraIcon className="w-5 h-5 mr-2" />
-              <span className="text-sm font-medium">Photographe Professionnel à Conakry</span>
-            </motion.div>
+            {/* Badge */}
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white text-sm font-medium mb-6">
+              <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+              Photographe professionnel à Conakry
+            </div>
 
-            <h1 className="text-6xl md:text-7xl lg:text-8xl font-bold text-white mb-8 leading-tight">
+            {/* Headline */}
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white tracking-tight mb-6 leading-tight">
               Immortalisez vos
-              <span className="block bg-gradient-to-r from-yellow-300 to-pink-300 bg-clip-text text-transparent">
+              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
                 moments précieux
               </span>
             </h1>
-            
-            <p className="text-xl md:text-2xl text-white/90 mb-12 max-w-3xl mx-auto leading-relaxed">
-              Mariage, Portrait, Événementiel - Des souvenirs qui durent toute une vie
+
+            {/* Description */}
+            <p className="text-lg sm:text-xl text-gray-300 mb-8 max-w-2xl leading-relaxed">
+              Mariage, Portrait, Événementiel — des souvenirs qui durent toute une vie. 
+              Capturez l'essence de vos moments uniques avec expertise et créativité.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
+            {/* CTA Buttons */}
+            <div className="flex flex-col sm:flex-row gap-4 mb-12">
               <Link
                 to="/booking"
-                className="group relative inline-flex items-center px-8 py-4 bg-white text-purple-600 rounded-full text-lg font-bold overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-2xl"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white text-gray-900 font-semibold rounded-full hover:bg-gray-100 transition-colors"
               >
-                <span className="relative z-10 flex items-center">
-                  <CalendarIcon className="w-6 h-6 mr-2" />
-                  Réserver une séance
-                </span>
-                <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 to-pink-400 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></div>
+                <CalendarIcon className="w-5 h-5" />
+                Réserver une séance
+                <ArrowRightIcon className="w-4 h-4" />
               </Link>
-              
               <Link
                 to="/gallery"
-                className="inline-flex items-center px-8 py-4 bg-transparent border-2 border-white text-white rounded-full text-lg font-bold hover:bg-white hover:text-purple-600 transition-all duration-300 hover:scale-105"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gray-900/50 text-white font-semibold rounded-full border border-gray-700 hover:bg-gray-800 transition-colors backdrop-blur-sm"
               >
-                <PhotoIcon className="w-6 h-6 mr-2" />
+                <PhotoIcon className="w-5 h-5" />
                 Voir la galerie
               </Link>
             </div>
 
             {/* Stats */}
-            {stats && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5 }}
-                className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto"
-              >
-                <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
-                  <div className="text-4xl font-bold text-white mb-2">
-                    <CountUp end={500} duration={2.5} />+
-                  </div>
-                  <div className="text-white/80 text-sm">Clients satisfaits</div>
+            <div className="flex flex-wrap gap-8 sm:gap-12">
+              {[
+                { value: stats?.totalReviews || 0, label: 'Clients satisfaits' },
+                { value: '5+', label: "Années d'expérience" },
+                { value: '500+', label: 'Séances réalisées' },
+              ].map((stat, index) => (
+                <div key={index}>
+                  <p className="text-2xl sm:text-3xl font-bold text-white">{stat.value}</p>
+                  <p className="text-sm text-gray-400">{stat.label}</p>
                 </div>
-                <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
-                  <div className="text-4xl font-bold text-white mb-2">
-                    <CountUp end={stats.totalReviews || 150} duration={2.5} />+
-                  </div>
-                  <div className="text-white/80 text-sm">Avis positifs</div>
-                </div>
-                <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
-                  <div className="text-4xl font-bold text-white mb-2">
-                    <CountUp end={5000} duration={2.5} />+
-                  </div>
-                  <div className="text-white/80 text-sm">Photos capturées</div>
-                </div>
-                <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
-                  <div className="text-4xl font-bold text-white mb-2">
-                    <CountUp end={stats.averageRating || 5} decimals={1} duration={2.5} />
-                  </div>
-                  <div className="text-white/80 text-sm">Note moyenne</div>
-                </div>
-              </motion.div>
-            )}
-          </motion.div>
+              ))}
+            </div>
+          </Motion.div>
         </div>
 
-        {/* Scroll Indicator */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1, duration: 1 }}
-          className="absolute bottom-10 left-1/2 transform -translate-x-1/2"
-        >
-          <div className="flex flex-col items-center">
-            <span className="text-white text-sm mb-2">Découvrir</span>
-            <motion.div
-              animate={{ y: [0, 10, 0] }}
-              transition={{ repeat: Infinity, duration: 1.5 }}
-              className="w-6 h-10 border-2 border-white rounded-full flex items-start justify-center p-2"
-            >
-              <div className="w-1 h-2 bg-white rounded-full"></div>
-            </motion.div>
+        {/* Scroll indicator */}
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2">
+          <div className="w-6 h-10 border-2 border-white/30 rounded-full flex justify-center pt-2">
+            <div className="w-1.5 h-3 bg-white/50 rounded-full animate-bounce" />
           </div>
-        </motion.div>
+        </div>
       </section>
 
       {/* Services Section */}
-      <section className="py-24 bg-gray-50 dark:bg-gray-800">
+      <section className="py-24 bg-gray-50 dark:bg-gray-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-5xl font-bold text-gray-900 dark:text-white mb-6">
-              Nos Services
-            </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-              Des prestations professionnelles adaptées à tous vos besoins
-            </p>
-          </motion.div>
+          <SectionHeading 
+            title="Nos Services" 
+            subtitle="Ce que je propose"
+          />
 
-          <motion.div
+          <Motion.div
             variants={containerVariants}
             initial="hidden"
             whileInView="visible"
@@ -226,162 +203,157 @@ const HomePageNew = () => {
             {[
               {
                 icon: HeartIcon,
-                title: "Mariage",
-                description: "Immortalisez le plus beau jour de votre vie avec des photos exceptionnelles",
-                color: "from-pink-500 to-rose-500"
+                title: 'Mariage',
+                description: 'Immortalisez le plus beau jour de votre vie avec des photos exceptionnelles qui racontent votre histoire.',
+                image: featuredPhotos[1] ? `${API_ASSETS_BASE}${featuredPhotos[1].thumbnailPath || featuredPhotos[1].filePath}` : null,
               },
               {
-                icon: CameraIcon,
-                title: "Portrait",
-                description: "Des portraits professionnels qui capturent votre essence unique",
-                color: "from-purple-500 to-indigo-500"
+                icon: UserGroupIcon,
+                title: 'Portrait',
+                description: 'Des portraits professionnels qui capturent votre essence unique, que ce soit en solo, en famille ou entre amis.',
+                image: featuredPhotos[2] ? `${API_ASSETS_BASE}${featuredPhotos[2].thumbnailPath || featuredPhotos[2].filePath}` : null,
               },
               {
-                icon: SparklesIcon,
-                title: "Événementiel",
-                description: "Couverture complète de vos événements professionnels et privés",
-                color: "from-blue-500 to-cyan-500"
-              }
+                icon: HeartIcon,
+                title: 'Événementiel',
+                description: 'Couverture complète de vos événements professionnels et privés, capturant chaque moment important.',
+                image: featuredPhotos[3] ? `${API_ASSETS_BASE}${featuredPhotos[3].thumbnailPath || featuredPhotos[3].filePath}` : null,
+              },
             ].map((service, index) => (
-              <motion.div
+              <Motion.div
                 key={index}
                 variants={itemVariants}
-                whileHover={{ y: -10, scale: 1.02 }}
-                className="bg-white dark:bg-gray-700 rounded-2xl shadow-xl overflow-hidden group cursor-pointer"
+                whileHover={{ y: -5 }}
+                className="group bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300"
               >
-                <div className={`h-2 bg-gradient-to-r ${service.color}`}></div>
-                <div className="p-8">
-                  <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-r ${service.color} mb-6`}>
-                    <service.icon className="w-8 h-8 text-white" />
+                {/* Image */}
+                <div className="relative h-48 overflow-hidden">
+                  {service.image ? (
+                    <img
+                      src={service.image}
+                      alt={service.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+                      <service.icon className="w-16 h-16 text-white/50" />
+                    </div>
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                  <div className="absolute bottom-4 left-4 right-4">
+                    <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm">
+                      <service.icon className="w-6 h-6 text-white" />
+                    </div>
                   </div>
-                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                </div>
+
+                {/* Content */}
+                <div className="p-6">
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">
                     {service.title}
                   </h3>
-                  <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
+                  <p className="text-gray-600 dark:text-gray-300 leading-relaxed mb-4">
                     {service.description}
                   </p>
                   <Link
                     to="/services"
-                    className="inline-flex items-center mt-6 text-purple-600 dark:text-purple-400 font-semibold group-hover:gap-2 transition-all"
+                    className="inline-flex items-center gap-2 text-sm font-semibold text-purple-600 dark:text-purple-400 hover:gap-3 transition-all"
                   >
                     En savoir plus
-                    <svg className="w-5 h-5 ml-1 group-hover:ml-2 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
+                    <ArrowRightIcon className="w-4 h-4" />
                   </Link>
                 </div>
-              </motion.div>
+              </Motion.div>
             ))}
-          </motion.div>
+          </Motion.div>
         </div>
       </section>
 
-      {/* Featured Photos Gallery */}
-      <section className="py-24 bg-white dark:bg-gray-900">
+      {/* Featured Gallery Section */}
+      <section className="py-24 bg-white dark:bg-gray-950">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-5xl font-bold text-gray-900 dark:text-white mb-6">
-              Nos Réalisations Récentes
-            </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-              Découvrez quelques-unes de nos meilleures créations
-            </p>
-          </motion.div>
+          <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4 mb-12">
+            <SectionHeading 
+              title="Réalisations Récentes" 
+              subtitle="Portfolio"
+              align="left"
+            />
+            <Link
+              to="/gallery"
+              className="inline-flex items-center gap-2 text-sm font-semibold text-purple-600 dark:text-purple-400 hover:gap-3 transition-all"
+            >
+              Voir toute la galerie
+              <ArrowRightIcon className="w-4 h-4" />
+            </Link>
+          </div>
 
-          <motion.div
+          <Motion.div
             variants={containerVariants}
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+            className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4"
           >
-            {featuredPhotos.map((photo, index) => (
-              <motion.div
+            {featuredPhotos.slice(0, 6).map((photo, index) => (
+              <Motion.div
                 key={photo.id}
                 variants={itemVariants}
-                whileHover={{ scale: 1.05 }}
+                whileHover={{ scale: 1.02 }}
                 onClick={() => openPhotoLightbox(index)}
-                className="relative overflow-hidden rounded-2xl shadow-2xl group cursor-pointer aspect-square"
+                className={`relative aspect-square overflow-hidden rounded-xl group cursor-pointer ${
+                  index === 0 ? 'md:col-span-2 md:row-span-2' : ''
+                }`}
               >
                 <img
-                  src={`http://localhost/photobook-api/public${photo.filePath}`}
+                  src={`${API_ASSETS_BASE}${photo.thumbnailPath || photo.filePath}`}
+                  srcSet={buildSrcSet(photo, API_ASSETS_BASE)}
+                  sizes={defaultSizesForFeatured()}
                   alt={photo.album?.title || 'Photo'}
+                  loading="lazy"
+                  decoding="async"
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <div className="absolute bottom-0 left-0 right-0 p-6 text-white transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
-                    <p className="text-lg font-bold mb-2">
-                      {photo.album?.title || 'Album'}
-                    </p>
-                    <p className="text-sm text-gray-200">
-                      Cliquez pour agrandir
-                    </p>
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors duration-300">
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                      <PlayIcon className="w-6 h-6 text-white" />
+                    </div>
                   </div>
                 </div>
-                <div className="absolute top-4 right-4 bg-white/20 backdrop-blur-sm rounded-full p-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
-                  </svg>
-                </div>
-              </motion.div>
+              </Motion.div>
             ))}
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            className="text-center mt-12"
-          >
-            <Link
-              to="/gallery"
-              className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full text-lg font-bold hover:shadow-2xl hover:scale-105 transition-all duration-300"
-            >
-              <PhotoIcon className="w-6 h-6 mr-2" />
-              Voir toute la galerie
-            </Link>
-          </motion.div>
+          </Motion.div>
         </div>
       </section>
 
-      {/* Reviews Section */}
-      <section className="py-24 bg-gray-50 dark:bg-gray-800">
+      {/* Testimonials Section */}
+      <section className="py-24 bg-gray-50 dark:bg-gray-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-5xl font-bold text-gray-900 dark:text-white mb-6">
-              Ce que disent nos clients
-            </h2>
-            {stats && (
-              <div className="flex items-center justify-center gap-3 mb-4">
-                <div className="flex text-yellow-400">
-                  {[...Array(5)].map((_, i) => (
-                    <StarIcon
-                      key={i}
-                      className={`w-8 h-8 ${i < Math.round(stats.averageRating) ? 'fill-current' : ''}`}
-                    />
-                  ))}
-                </div>
-                <span className="text-2xl font-bold text-gray-700 dark:text-gray-200">
-                  {stats.averageRating}/5
-                </span>
-                <span className="text-gray-500 dark:text-gray-400">
-                  ({stats.totalReviews} avis)
-                </span>
-              </div>
-            )}
-          </motion.div>
+          <SectionHeading 
+            title="Ce que disent mes clients" 
+            subtitle="Témoignages"
+          />
 
-          <motion.div
+          {stats && (
+            <div className="flex items-center justify-center gap-4 mb-12">
+              <div className="flex items-center gap-1">
+                {[...Array(5)].map((_, i) => (
+                  <StarIcon
+                    key={i}
+                    className={`w-6 h-6 ${i < Math.round(stats.averageRating) ? 'text-yellow-400 fill-current' : 'text-gray-300'}`}
+                  />
+                ))}
+              </div>
+              <span className="text-xl font-bold text-gray-900 dark:text-white">
+                {stats.averageRating}/5
+              </span>
+              <span className="text-gray-500 dark:text-gray-400">
+                ({stats.totalReviews} avis)
+              </span>
+            </div>
+          )}
+
+          <Motion.div
             variants={containerVariants}
             initial="hidden"
             whileInView="visible"
@@ -389,36 +361,36 @@ const HomePageNew = () => {
             className="grid grid-cols-1 md:grid-cols-3 gap-8"
           >
             {reviews.map((review) => (
-              <motion.div
+              <Motion.div
                 key={review.id}
                 variants={itemVariants}
                 whileHover={{ y: -5 }}
-                className="bg-white dark:bg-gray-700 rounded-2xl shadow-xl p-8 relative"
+                className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg"
               >
-                <div className="absolute -top-4 -left-4 w-12 h-12 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center">
-                  <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
-                  </svg>
-                </div>
-                <div className="flex text-yellow-400 mb-4 mt-2">
+                {/* Stars */}
+                <div className="flex items-center gap-1 mb-4">
                   {[...Array(5)].map((_, i) => (
                     <StarIcon
                       key={i}
-                      className={`w-5 h-5 ${i < review.rating ? 'fill-current' : ''}`}
+                      className={`w-5 h-5 ${i < review.rating ? 'text-yellow-400 fill-current' : 'text-gray-300'}`}
                     />
                   ))}
                 </div>
-                <h3 className="font-bold text-xl mb-3 text-gray-900 dark:text-white">
+
+                {/* Content */}
+                <h3 className="font-bold text-lg text-gray-900 dark:text-white mb-2">
                   {review.title}
                 </h3>
                 <p className="text-gray-600 dark:text-gray-300 mb-6 leading-relaxed">
                   {review.content}
                 </p>
-                <div className="flex items-center">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 flex items-center justify-center text-white font-bold text-lg">
-                    {review.client?.firstName?.charAt(0)}
+
+                {/* Author */}
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold">
+                    {review.client?.firstName?.charAt(0) || 'C'}
                   </div>
-                  <div className="ml-4">
+                  <div>
                     <p className="font-semibold text-gray-900 dark:text-white">
                       {review.client?.firstName} {review.client?.lastName}
                     </p>
@@ -427,68 +399,54 @@ const HomePageNew = () => {
                     </p>
                   </div>
                 </div>
-              </motion.div>
+              </Motion.div>
             ))}
-          </motion.div>
+          </Motion.div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="py-24 bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-900 dark:to-pink-900">
+      <section className="py-24 bg-white dark:bg-gray-950">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
+          <Motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
-            className="text-center"
+            className="relative bg-gradient-to-br from-purple-600 to-pink-600 rounded-3xl overflow-hidden"
           >
-            <h2 className="text-5xl font-bold text-white mb-6">
-              Prêt à réserver votre séance photo ?
-            </h2>
-            <p className="text-xl text-white/90 mb-10 max-w-2xl mx-auto">
-              Réservez en ligne en quelques clics et choisissez le créneau qui vous convient
-            </p>
-            
-            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
-              <Link
-                to="/booking"
-                className="group relative inline-flex items-center px-10 py-5 bg-white text-purple-600 rounded-full text-xl font-bold overflow-hidden hover:scale-105 transition-all duration-300 shadow-2xl"
-              >
-                <CalendarIcon className="w-7 h-7 mr-3" />
-                Réserver maintenant
-              </Link>
-              
-              <Link
-                to="/services"
-                className="inline-flex items-center px-10 py-5 bg-transparent border-2 border-white text-white rounded-full text-xl font-bold hover:bg-white hover:text-purple-600 transition-all duration-300"
-              >
-                <CheckCircleIcon className="w-7 h-7 mr-3" />
-                Voir nos services
-              </Link>
+            {/* Background Pattern */}
+            <div className="absolute inset-0 opacity-10">
+              <div className="absolute inset-0" style={{
+                backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+              }} />
             </div>
 
-            {/* Trust Badges */}
-            <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-8">
-              {[
-                { icon: CheckCircleIcon, text: "Qualité garantie" },
-                { icon: HeartIcon, text: "Satisfaction client" },
-                { icon: CameraIcon, text: "Équipement professionnel" },
-                { icon: SparklesIcon, text: "Créativité unique" }
-              ].map((badge, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.1 }}
-                  className="flex flex-col items-center text-white"
+            <div className="relative px-8 py-16 sm:px-16 sm:py-20 text-center">
+              <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+                Prêt à créer vos souvenirs ?
+              </h2>
+              <p className="text-lg text-white/90 mb-8 max-w-2xl mx-auto">
+                Réservez votre séance photo en quelques clics. Choisissez le créneau qui vous convient et laissez-moi capturer vos moments précieux.
+              </p>
+
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Link
+                  to="/booking"
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white text-purple-600 font-semibold rounded-full hover:bg-gray-100 transition-colors"
                 >
-                  <badge.icon className="w-10 h-10 mb-3" />
-                  <span className="text-sm font-medium">{badge.text}</span>
-                </motion.div>
-              ))}
+                  <CalendarIcon className="w-5 h-5" />
+                  Réserver maintenant
+                </Link>
+                <Link
+                  to="/services"
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white/10 text-white font-semibold rounded-full border border-white/30 hover:bg-white/20 transition-colors backdrop-blur-sm"
+                >
+                  Voir les services
+                  <ArrowRightIcon className="w-4 h-4" />
+                </Link>
+              </div>
             </div>
-          </motion.div>
+          </Motion.div>
         </div>
       </section>
     </div>
@@ -496,3 +454,4 @@ const HomePageNew = () => {
 };
 
 export default HomePageNew;
+

@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { motion as Motion } from 'framer-motion';
 import serviceService from '../services/serviceService';
 import Loading from '../components/common/Loading';
+import { CalendarIcon, UserGroupIcon, ClockIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
 
 const ServicesPage = () => {
   const [services, setServices] = useState([]);
@@ -42,32 +44,55 @@ const ServicesPage = () => {
     }).format(price);
   };
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: 0.1 },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: { y: 0, opacity: 1 },
+  };
+
   if (loading) {
     return <Loading fullScreen />;
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            Nos Services Photo
-          </h1>
-          <p className="text-lg text-gray-600">
-            Des prestations sur mesure pour tous vos événements
-          </p>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300 pt-16">
+      {/* Header Section */}
+      <div className="bg-gradient-to-br from-purple-900 via-gray-900 to-pink-900 text-white py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <Motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+            >
+              <h1 className="text-4xl md:text-5xl font-bold mb-4">
+                Nos Services Photo
+              </h1>
+              <p className="text-lg text-gray-300 max-w-2xl mx-auto">
+                Des prestations sur mesure pour tous vos événements. Mariage, portrait, événementiel - nous capturons vos moments précieux.
+              </p>
+            </Motion.div>
+          </div>
         </div>
+      </div>
 
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Filtres par catégorie */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-8">
           <div className="flex flex-wrap gap-3 justify-center">
             <button
               onClick={() => setSelectedCategory('all')}
-              className={`px-6 py-3 rounded-lg font-medium transition-colors ${
+              className={`px-6 py-3 rounded-full font-medium text-sm transition-all ${
                 selectedCategory === 'all'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  ? 'bg-purple-600 text-white shadow-lg'
+                  : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
               }`}
             >
               Tous ({services.length})
@@ -76,10 +101,10 @@ const ServicesPage = () => {
               <button
                 key={cat.category}
                 onClick={() => setSelectedCategory(cat.category)}
-                className={`px-6 py-3 rounded-lg font-medium transition-colors ${
+                className={`px-6 py-3 rounded-full font-medium text-sm transition-all ${
                   selectedCategory === cat.category
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ? 'bg-purple-600 text-white shadow-lg'
+                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                 }`}
               >
                 {cat.category} ({cat.count})
@@ -89,72 +114,84 @@ const ServicesPage = () => {
         </div>
 
         {/* Liste des services */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <Motion.div
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+        >
           {filteredServices.map((service) => (
-            <div
+            <Motion.div
               key={service.id}
-              className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow"
+              variants={itemVariants}
+              whileHover={{ y: -5 }}
+              className="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300"
             >
-              {/* Image placeholder */}
-              <div className="h-48 bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                <span className="text-6xl">📸</span>
+              {/* Image placeholder avec gradient */}
+              <div className="h-48 bg-gradient-to-br from-purple-500 via-pink-500 to-purple-600 flex items-center justify-center relative overflow-hidden">
+                <div className="absolute inset-0 bg-black/10" />
+                <span className="text-6xl relative z-10">📸</span>
+                {/* Decorative circles */}
+                <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/10 rounded-full" />
+                <div className="absolute -bottom-10 -left-10 w-24 h-24 bg-white/10 rounded-full" />
               </div>
 
               {/* Contenu */}
               <div className="p-6">
                 {/* Catégorie */}
-                <span className="inline-block px-3 py-1 bg-blue-100 text-blue-800 text-xs font-semibold rounded-full mb-3">
+                <span className="inline-block px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 text-xs font-semibold rounded-full mb-3">
                   {service.category}
                 </span>
 
                 {/* Titre */}
-                <h3 className="text-xl font-bold text-gray-900 mb-2">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
                   {service.name}
                 </h3>
 
                 {/* Description */}
-                <p className="text-gray-600 text-sm mb-4 line-clamp-3">
+                <p className="text-gray-600 dark:text-gray-300 text-sm mb-4 line-clamp-3">
                   {service.description}
                 </p>
 
                 {/* Infos */}
                 <div className="space-y-2 mb-4">
-                  <div className="flex items-center text-sm text-gray-500">
-                    <span className="mr-2">⏱️</span>
+                  <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
+                    <ClockIcon className="w-5 h-5 mr-2 text-purple-500" />
                     <span>{service.durationMin} minutes</span>
                   </div>
                   {service.maxParticipants && (
-                    <div className="flex items-center text-sm text-gray-500">
-                      <span className="mr-2">👥</span>
+                    <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
+                      <UserGroupIcon className="w-5 h-5 mr-2 text-purple-500" />
                       <span>Max {service.maxParticipants} participants</span>
                     </div>
                   )}
                 </div>
 
-                {/* Prix */}
-                <div className="flex items-end justify-between pt-4 border-t">
+                {/* Prix et Réserver */}
+                <div className="flex items-end justify-between pt-4 border-t border-gray-100 dark:border-gray-700">
                   <div>
-                    <p className="text-sm text-gray-500">À partir de</p>
-                    <p className="text-2xl font-bold text-blue-600">
+                    <p className="text-sm text-gray-500 dark:text-gray-400">À partir de</p>
+                    <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
                       {formatPrice(service.basePrice)}
                     </p>
                   </div>
                   <Link
                     to="/booking"
                     state={{ selectedService: service }}
-                    className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-purple-600 text-white font-semibold rounded-full hover:bg-purple-700 transition-colors"
                   >
+                    <CalendarIcon className="w-4 h-4" />
                     Réserver
                   </Link>
                 </div>
               </div>
-            </div>
+            </Motion.div>
           ))}
-        </div>
+        </Motion.div>
 
         {filteredServices.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-gray-500 text-lg">
+          <div className="text-center py-16">
+            <p className="text-gray-500 dark:text-gray-400 text-lg">
               Aucun service trouvé dans cette catégorie
             </p>
           </div>
@@ -165,3 +202,4 @@ const ServicesPage = () => {
 };
 
 export default ServicesPage;
+

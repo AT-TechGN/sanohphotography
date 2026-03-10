@@ -47,3 +47,6 @@ api.interceptors.response.use(
 );
 
 export default api;
+
+// Base URL pour les assets (images) — configurable séparément si besoin
+export const API_ASSETS_BASE = import.meta.env.VITE_API_ASSETS_BASE || API_BASE_URL.replace(/\/api\/?$/, '').replace(/\/$/, '');

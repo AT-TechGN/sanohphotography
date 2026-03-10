@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import galleryService from '../services/galleryService';
+import { API_ASSETS_BASE } from '../services/api';
+import { buildSrcSet, defaultSizesForFeatured } from '../utils/imageHelpers';
 import reviewService from '../services/reviewService';
 import Loading from '../components/common/Loading';
 
@@ -86,8 +88,12 @@ const HomePage = () => {
                 className="relative overflow-hidden rounded-lg shadow-lg group cursor-pointer"
               >
                 <img
-                  src={`http://localhost/photobook-api/public${photo.filePath}`}
-                  alt="Photo"
+                  src={`${API_ASSETS_BASE}${photo.thumbnailPath || photo.filePath}`}
+                  srcSet={buildSrcSet(photo, API_ASSETS_BASE)}
+                  sizes={defaultSizesForFeatured()}
+                  alt={photo.album?.title || 'Photo'}
+                  loading="lazy"
+                  decoding="async"
                   className="w-full h-80 object-cover group-hover:scale-110 transition-transform duration-300"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">

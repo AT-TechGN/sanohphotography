@@ -1,8 +1,13 @@
 import { useEffect, useState } from 'react';
+import { motion as Motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import galleryService from '../services/galleryService';
+import { API_ASSETS_BASE } from '../services/api';
+import { buildSrcSet, defaultSizesForGallery } from '../utils/imageHelpers';
 import serviceService from '../services/serviceService';
 import Loading from '../components/common/Loading';
 import useUIStore from '../stores/uiStore';
+import { ArrowLeftIcon, FunnelIcon, PhotoIcon } from '@heroicons/react/24/outline';
 
 const GalleryPage = () => {
   const [photos, setPhotos] = useState([]);
@@ -14,6 +19,7 @@ const GalleryPage = () => {
     page: 1,
   });
   const [loading, setLoading] = useState(true);
+  const [showFilters, setShowFilters] = useState(false);
   const { openLightbox } = useUIStore();
 
   const periods = [
@@ -64,31 +70,67 @@ const GalleryPage = () => {
 
   const handlePhotoClick = (index) => {
     const images = photos.map((photo) => ({
-      src: `http://localhost/photobook-api/public${photo.filePath}`,
+      src: `${API_ASSETS_BASE}${photo.filePath}`,
       alt: photo.album?.title || 'Photo',
+      width: photo.width || 1920,
+      height: photo.height || 1080,
     }));
     openLightbox(images, index);
   };
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: 0.05 },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: { y: 0, opacity: 1 },
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            Notre Galerie Photo
-          </h1>
-          <p className="text-lg text-gray-600">
-            Découvrez nos réalisations photographiques
-          </p>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300 pt-16">
+      {/* Header Section */}
+      <div className="bg-gradient-to-br from-purple-900 via-gray-900 to-pink-900 text-white py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <Motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+            >
+              <h1 className="text-4xl md:text-5xl font-bold mb-4">
+                Notre Galerie Photo
+              </h1>
+              <p className="text-lg text-gray-300 max-w-2xl mx-auto">
+                Découvrez nos réalisations photographiques à travers des moments capturés avec passion et expertise.
+              </p>
+            </Motion.div>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Filtres - Mobile Toggle */}
+        <div className="md:hidden mb-4">
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 rounded-lg shadow text-gray-700 dark:text-gray-300"
+          >
+            <FunnelIcon className="w-5 h-5" />
+            Filtres
+          </button>
         </div>
 
         {/* Filtres */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+        <div className={`bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-8 ${showFilters ? 'block' : 'hidden md:block'}`}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Filtre période */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
                 Période
               </label>
               <div className="flex flex-wrap gap-2">
@@ -96,10 +138,10 @@ const GalleryPage = () => {
                   <button
                     key={period.value}
                     onClick={() => handleFilterChange('period', period.value)}
-                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                    className={`px-4 py-2 rounded-full font-medium text-sm transition-all ${
                       filters.period === period.value
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        ? 'bg-purple-600 text-white shadow-lg'
+                        : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                     }`}
                   >
                     {period.label}
@@ -110,13 +152,13 @@ const GalleryPage = () => {
 
             {/* Filtre catégorie */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
                 Catégorie
               </label>
               <select
                 value={filters.category}
                 onChange={(e) => handleFilterChange('category', e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               >
                 <option value="">Toutes les catégories</option>
                 {categories.map((cat) => (
@@ -129,42 +171,60 @@ const GalleryPage = () => {
           </div>
         </div>
 
-        {/* Grille de photos (Masonry) */}
+        {/* Grille de photos */}
         {loading ? (
           <Loading />
         ) : photos.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-gray-500 text-lg">Aucune photo trouvée</p>
+          <div className="text-center py-16">
+            <div className="w-20 h-20 mx-auto mb-4 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center">
+              <PhotoIcon className="w-10 h-10 text-gray-400" />
+            </div>
+            <p className="text-gray-500 dark:text-gray-400 text-lg">Aucune photo trouvée</p>
+            <Link to="/" className="inline-flex items-center gap-2 mt-4 text-purple-600 dark:text-purple-400 font-medium">
+              <ArrowLeftIcon className="w-4 h-4" />
+              Retour à l'accueil
+            </Link>
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <Motion.div
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
+            >
               {photos.map((photo, index) => (
-                <div
+                <Motion.div
                   key={photo.id}
+                  variants={itemVariants}
+                  whileHover={{ scale: 1.02 }}
                   onClick={() => handlePhotoClick(index)}
-                  className="relative overflow-hidden rounded-lg shadow-md group cursor-pointer"
+                  className="relative aspect-square overflow-hidden rounded-xl shadow-lg group cursor-pointer"
                 >
                   <img
-                    src={`http://localhost/photobook-api/public${photo.thumbnailPath || photo.filePath}`}
-                    alt="Photo"
-                    className="w-full h-64 object-cover group-hover:scale-110 transition-transform duration-300"
+                    src={`${API_ASSETS_BASE}${photo.thumbnailPath || photo.filePath}`}
+                    srcSet={buildSrcSet(photo, API_ASSETS_BASE)}
+                    sizes={defaultSizesForGallery()}
+                    alt={photo.album?.title || 'Photo'}
+                    loading="lazy"
+                    decoding="async"
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                   />
                   {photo.isFeatured && (
                     <div className="absolute top-2 right-2 bg-yellow-400 text-yellow-900 px-2 py-1 rounded-full text-xs font-bold">
-                      ⭐ En vedette
+                      ⭐
                     </div>
                   )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
-                    <div className="absolute bottom-4 left-4 text-white">
-                      <p className="text-sm font-medium">
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="absolute bottom-4 left-4 right-4">
+                      <p className="text-white font-medium text-sm">
                         {photo.album?.title || 'Album'}
                       </p>
                     </div>
                   </div>
-                </div>
+                </Motion.div>
               ))}
-            </div>
+            </Motion.div>
 
             {/* Pagination */}
             {pagination && pagination.totalPages > 1 && (
@@ -172,7 +232,7 @@ const GalleryPage = () => {
                 <button
                   onClick={() => handlePageChange(pagination.page - 1)}
                   disabled={pagination.page === 1}
-                  className="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
+                  className="px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300"
                 >
                   Précédent
                 </button>
@@ -182,10 +242,10 @@ const GalleryPage = () => {
                     <button
                       key={i + 1}
                       onClick={() => handlePageChange(i + 1)}
-                      className={`px-4 py-2 rounded-lg ${
+                      className={`w-10 h-10 rounded-lg font-medium ${
                         pagination.page === i + 1
-                          ? 'bg-blue-600 text-white'
-                          : 'border border-gray-300 hover:bg-gray-100'
+                          ? 'bg-purple-600 text-white'
+                          : 'border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300'
                       }`}
                     >
                       {i + 1}
@@ -196,7 +256,7 @@ const GalleryPage = () => {
                 <button
                   onClick={() => handlePageChange(pagination.page + 1)}
                   disabled={pagination.page === pagination.totalPages}
-                  className="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
+                  className="px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300"
                 >
                   Suivant
                 </button>
@@ -205,7 +265,7 @@ const GalleryPage = () => {
 
             {/* Stats */}
             {pagination && (
-              <div className="mt-8 text-center text-gray-600">
+              <div className="mt-8 text-center text-gray-500 dark:text-gray-400">
                 Affichage de {(pagination.page - 1) * pagination.limit + 1} à{' '}
                 {Math.min(pagination.page * pagination.limit, pagination.total)} sur{' '}
                 {pagination.total} photos
@@ -219,3 +279,4 @@ const GalleryPage = () => {
 };
 
 export default GalleryPage;
+
