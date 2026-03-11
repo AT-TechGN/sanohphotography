@@ -70,6 +70,8 @@ security:
         # Endpoints réservés aux employés
         - { path: ^/api/admin/photos, roles: ROLE_EMPLOYE }
         - { path: ^/api/admin/albums, roles: ROLE_EMPLOYE }
+        - { path: ^/api/admin/tags, roles: ROLE_EMPLOYE }
+        - { path: ^/api/admin/bookings/for-album, roles: ROLE_EMPLOYE }
         
         # Endpoints réservés aux photographes
         - { path: ^/api/admin/bookings, roles: ROLE_PHOTOGRAPHE }
@@ -80,7 +82,9 @@ security:
         - { path: ^/api/admin/employees, roles: ROLE_ADMIN }
         - { path: ^/api/admin/users, roles: ROLE_ADMIN }
         - { path: ^/api/admin/invoices, roles: ROLE_ADMIN }
-        - { path: ^/api/admin/dashboard, roles: ROLE_ADMIN }
+        
+        # Dashboard - réservé aux photographes et admins
+        - { path: ^/api/dashboard, roles: ROLE_PHOTOGRAPHE }
         
         # Tout le reste de l'API nécessite au moins d'être authentifié
         - { path: ^/api, roles: ROLE_CLIENT }

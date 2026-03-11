@@ -41,7 +41,7 @@ final class DashboardController extends AbstractController
         // Réservations du jour
         $todayBookings = $this->bookingRepository->createQueryBuilder('b')
             ->select('COUNT(b.id)')
-            ->where('b.scheduledDate = :today')
+            ->where('b.bookingDate = :today')
             ->andWhere('b.status != :cancelled')
             ->setParameter('today', $today)
             ->setParameter('cancelled', BookingStatus::CANCELLED->value)
@@ -50,7 +50,7 @@ final class DashboardController extends AbstractController
 
         // Revenus du mois
         $monthRevenue = $this->invoiceRepository->createQueryBuilder('i')
-            ->select('COALESCE(SUM(i.amount), 0)')
+            ->select('COALESCE(SUM(i.amountTtc), 0)')
             ->where('i.status = :paid')
             ->andWhere('i.paidAt >= :month')
             ->setParameter('paid', InvoiceStatus::PAID->value)
@@ -119,7 +119,7 @@ final class DashboardController extends AbstractController
             
             $count = $this->bookingRepository->createQueryBuilder('b')
                 ->select('COUNT(b.id)')
-                ->where('b.scheduledDate = :date')
+                ->where('b.bookingDate = :date')
                 ->andWhere('b.status != :cancelled')
                 ->setParameter('date', $date)
                 ->setParameter('cancelled', BookingStatus::CANCELLED->value)
@@ -141,7 +141,7 @@ final class DashboardController extends AbstractController
             $nextDate->modify('+1 day');
 
             $amount = $this->invoiceRepository->createQueryBuilder('i')
-                ->select('COALESCE(SUM(i.amount), 0)')
+                ->select('COALESCE(SUM(i.amountTtc), 0)')
                 ->where('i.paidAt >= :date')
                 ->andWhere('i.paidAt < :nextDate')
                 ->andWhere('i.status = :paid')
@@ -161,7 +161,7 @@ final class DashboardController extends AbstractController
         $serviceDistribution = $this->bookingRepository->createQueryBuilder('b')
             ->select('s.name as service, COUNT(b.id) as total')
             ->innerJoin('b.service', 's')
-            ->where('b.scheduledDate >= :start')
+            ->where('b.bookingDate >= :start')
             ->andWhere('b.status != :cancelled')
             ->setParameter('start', $startDate)
             ->setParameter('cancelled', BookingStatus::CANCELLED->value)
@@ -231,7 +231,7 @@ final class DashboardController extends AbstractController
                 'message' => sprintf(
                     'Nouvelle réservation : %s pour le %s',
                     $booking->getService()->getName(),
-                    $booking->getScheduledDate()->format('d/m/Y')
+                    $booking->getBookingDate()->format('d/m/Y')
                 ),
                 'timestamp' => $booking->getCreatedAt()->format('c'),
                 'data' => [
@@ -270,7 +270,7 @@ final class DashboardController extends AbstractController
         // Factures récentes
         $recentInvoices = $this->invoiceRepository->findBy(
             [],
-            ['issuedAt' => 'DESC'],
+            ['createdAt' => 'DESC'],
             $limit / 4
         );
 
@@ -281,14 +281,14 @@ final class DashboardController extends AbstractController
                 'message' => sprintf(
                     'Facture %s : %s GNF (%s)',
                     $invoice->getInvoiceNumber(),
-                    $invoice->getAmount(),
+                    $invoice->getAmountTtc(),
                     $invoice->getStatus()
                 ),
-                'timestamp' => $invoice->getIssuedAt()->format('c'),
+                'timestamp' => $invoice->getCreatedAt()->format('c'),
                 'data' => [
                     'id' => $invoice->getId(),
                     'number' => $invoice->getInvoiceNumber(),
-                    'amount' => $invoice->getAmount(),
+                    'amount' => $invoice->getAmountTtc(),
                     'status' => $invoice->getStatus()
                 ]
             ];
@@ -321,8 +321,8 @@ final class DashboardController extends AbstractController
                 COUNT(b.id) as totalBookings,
                 SUM(CASE WHEN b.status = :completed THEN 1 ELSE 0 END) as completedBookings
             ')
-            ->innerJoin('b.assignedEmployee', 'e')
-            ->where('b.scheduledDate >= :month')
+            ->innerJoin('b.employee', 'e')
+            ->where('b.bookingDate >= :month')
             ->andWhere('b.status != :cancelled')
             ->setParameter('month', $thisMonth)
             ->setParameter('completed', BookingStatus::COMPLETED->value)
@@ -372,7 +372,7 @@ final class DashboardController extends AbstractController
                 ->getSingleScalarResult(),
 
             'totalRevenue' => $this->invoiceRepository->createQueryBuilder('i')
-                ->select('COALESCE(SUM(i.amount), 0)')
+                ->select('COALESCE(SUM(i.amountTtc), 0)')
                 ->where('i.status = :paid')
                 ->setParameter('paid', InvoiceStatus::PAID->value)
                 ->getQuery()
@@ -422,13 +422,13 @@ final class DashboardController extends AbstractController
 
         // Réservations à venir
         $upcomingBookings = $this->bookingRepository->createQueryBuilder('b')
-            ->where('b.scheduledDate BETWEEN :today AND :nextWeek')
+            ->where('b.bookingDate BETWEEN :today AND :nextWeek')
             ->andWhere('b.status IN (:statuses)')
             ->setParameter('today', $today)
             ->setParameter('nextWeek', $nextWeek)
             ->setParameter('statuses', [BookingStatus::CONFIRMED->value, BookingStatus::PENDING->value])
-            ->orderBy('b.scheduledDate', 'ASC')
-            ->addOrderBy('b.scheduledTime', 'ASC')
+            ->orderBy('b.bookingDate', 'ASC')
+            ->addOrderBy('b.startTime', 'ASC')
             ->getQuery()
             ->getResult();
 
@@ -438,11 +438,11 @@ final class DashboardController extends AbstractController
                 'id' => $booking->getId(),
                 'title' => $booking->getService()->getName(),
                 'client' => $booking->getClient()->getFirstName() . ' ' . $booking->getClient()->getLastName(),
-                'date' => $booking->getScheduledDate()->format('Y-m-d'),
-                'time' => $booking->getScheduledTime()->format('H:i'),
+                'date' => $booking->getBookingDate()->format('Y-m-d'),
+                'time' => $booking->getStartTime()->format('H:i'),
                 'status' => $booking->getStatus(),
-                'employee' => $booking->getAssignedEmployee() 
-                    ? $booking->getAssignedEmployee()->getFirstName() . ' ' . $booking->getAssignedEmployee()->getLastName()
+                'employee' => $booking->getEmployee() 
+                    ? $booking->getEmployee()->getFirstName() . ' ' . $booking->getEmployee()->getLastName()
                     : null
             ];
         }, $upcomingBookings);

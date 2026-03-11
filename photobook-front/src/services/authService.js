@@ -16,15 +16,28 @@ const authService = {
    * Connexion
    */
   async login(credentials) {
-    const response = await api.post('/login', credentials);
-    if (response.data.token) {
-      localStorage.setItem('token', response.data.token);
-      // Récupérer les infos utilisateur
-      const user = await this.getCurrentUser();
-      localStorage.setItem('user', JSON.stringify(user));
-      return { token: response.data.token, user };
+    try {
+      const response = await api.post('/login', credentials);
+      
+      if (response.data.token) {
+        // Sauvegarder le token
+        localStorage.setItem('token', response.data.token);
+        
+        // Récupérer les infos utilisateur avec le token
+        const user = await this.getCurrentUser();
+        localStorage.setItem('user', JSON.stringify(user));
+        
+        return { token: response.data.token, user };
+      }
+      
+      // Si pas de token dans la réponse, erreur
+      throw new Error('Aucun token reçu du serveur');
+    } catch (error) {
+      // Nettoyer le localStorage en cas d'erreur
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      throw error;
     }
-    return response.data;
   },
 
   /**

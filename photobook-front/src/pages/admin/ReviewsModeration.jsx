@@ -1,33 +1,52 @@
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import reviewService from '../../services/reviewService';
-import useUIStore from '../../stores/uiStore';
-import Loading from '../../components/common/Loading';
+import {
+  StarIcon,
+  CheckCircleIcon,
+  XCircleIcon,
+  ClockIcon,
+  UserCircleIcon,
+  CalendarIcon,
+  FunnelIcon,
+  ChatBubbleLeftIcon,
+} from '@heroicons/react/24/outline';
+import { StarIcon as StarSolidIcon } from '@heroicons/react/24/solid';
 
 const ReviewsModeration = () => {
-  const [pendingReviews, setPendingReviews] = useState([]);
-  const [approvedReviews, setApprovedReviews] = useState([]);
-  const [stats, setStats] = useState(null);
+  const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('pending');
-  const { showSuccess, showError } = useUIStore();
+  const [filter, setFilter] = useState('pending'); // pending, approved, rejected, all
+  const [stats, setStats] = useState({ pending: 0, approved: 0, rejected: 0, total: 0 });
 
   useEffect(() => {
-    loadData();
-  }, []);
+    loadReviews();
+  }, [filter]);
 
-  const loadData = async () => {
+  const loadReviews = async () => {
     try {
       setLoading(true);
-      const [pending, approved, statsData] = await Promise.all([
-        reviewService.getPending(),
-        reviewService.getApproved(1, 20),
-        reviewService.getStats(),
-      ]);
-      setPendingReviews(pending);
-      setApprovedReviews(approved.data || approved);
-      setStats(statsData);
+      let data;
+      if (filter === 'pending') {
+        data = await reviewService.getPendingReviews();
+      } else if (filter === 'all') {
+        data = await reviewService.getAllReviews();
+      } else {
+        data = await reviewService.getAllReviews({ status: filter });
+      }
+      setReviews(Array.isArray(data) ? data : []);
+      
+      // Calculer les stats
+      const allData = await reviewService.getAllReviews();
+      const allReviews = Array.isArray(allData) ? allData : [];
+      setStats({
+        pending: allReviews.filter(r => r.status === 'pending').length,
+        approved: allReviews.filter(r => r.status === 'approved').length,
+        rejected: allReviews.filter(r => r.status === 'rejected').length,
+        total: allReviews.length,
+      });
     } catch (error) {
-      showError('Erreur chargement avis');
+      console.error('Erreur chargement avis:', error);
+      setReviews([]);
     } finally {
       setLoading(false);
     }
@@ -35,201 +54,212 @@ const ReviewsModeration = () => {
 
   const handleApprove = async (id) => {
     try {
-      await reviewService.approve(id);
-      showSuccess('Avis approuvé');
-      loadData();
+      await reviewService.approveReview(id);
+      loadReviews();
     } catch (error) {
-      showError('Erreur lors de l\'approbation');
+      console.error('Erreur approbation:', error);
     }
   };
 
   const handleReject = async (id) => {
-    if (!confirm('Êtes-vous sûr de vouloir rejeter cet avis ?')) return;
-
     try {
-      await reviewService.reject(id);
-      showSuccess('Avis rejeté');
-      loadData();
+      await reviewService.rejectReview(id);
+      loadReviews();
     } catch (error) {
-      showError('Erreur lors du rejet');
-    }
-  };
-
-  const handleToggleFeatured = async (id) => {
-    try {
-      await reviewService.toggleFeatured(id);
-      showSuccess('Statut vedette modifié');
-      loadData();
-    } catch (error) {
-      showError('Erreur');
+      console.error('Erreur rejet:', error);
     }
   };
 
   const renderStars = (rating) => {
-    return [...Array(5)].map((_, i) => (
-      <span key={i} className={i < rating ? 'text-yellow-400' : 'text-gray-300'}>
-        ★
-      </span>
-    ));
+    return (
+      <div className="flex items-center gap-1">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <StarSolidIcon
+            key={star}
+            className={`w-5 h-5 ${
+              star <= rating ? 'text-yellow-400' : 'text-gray-300'
+            }`}
+          />
+        ))}
+      </div>
+    );
   };
 
-  if (loading) return <Loading fullScreen />;
+  const getStatusBadge = (status) => {
+    const badges = {
+      pending: {
+        bg: 'bg-yellow-100 dark:bg-yellow-900/30',
+        text: 'text-yellow-700 dark:text-yellow-400',
+        label: 'En attente',
+        icon: <ClockIcon className="w-4 h-4" />,
+      },
+      approved: {
+        bg: 'bg-green-100 dark:bg-green-900/30',
+        text: 'text-green-700 dark:text-green-400',
+        label: 'Approuvé',
+        icon: <CheckCircleIcon className="w-4 h-4" />,
+      },
+      rejected: {
+        bg: 'bg-red-100 dark:bg-red-900/30',
+        text: 'text-red-700 dark:text-red-400',
+        label: 'Rejeté',
+        icon: <XCircleIcon className="w-4 h-4" />,
+      },
+    };
+
+    const badge = badges[status] || badges.pending;
+
+    return (
+      <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold ${badge.bg} ${badge.text}`}>
+        {badge.icon}
+        {badge.label}
+      </span>
+    );
+  };
 
   return (
-    <div className="p-8">
-      <h1 className="text-3xl font-bold mb-8">Modération des Avis</h1>
-
-      {/* Statistiques */}
-      {stats && (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <p className="text-gray-600 text-sm mb-2">Note moyenne</p>
-            <div className="flex items-center gap-2">
-              <p className="text-3xl font-bold text-yellow-600">{stats.averageRating}</p>
-              <div className="flex text-xl">{renderStars(Math.round(stats.averageRating))}</div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <p className="text-gray-600 text-sm mb-2">Total avis</p>
-            <p className="text-3xl font-bold text-blue-600">{stats.totalReviews}</p>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <p className="text-gray-600 text-sm mb-2">En attente</p>
-            <p className="text-3xl font-bold text-yellow-600">{stats.pendingReviews}</p>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <p className="text-gray-600 text-sm mb-2">Répartition</p>
-            <div className="space-y-1">
-              {[5, 4, 3, 2, 1].map((star) => (
-                <div key={star} className="flex items-center gap-2 text-xs">
-                  <span>{star}★</span>
-                  <div className="flex-1 bg-gray-200 rounded h-2">
-                    <div
-                      className="bg-yellow-400 h-2 rounded"
-                      style={{
-                        width: `${
-                          (stats.distribution[star] / stats.totalReviews) * 100 || 0
-                        }%`,
-                      }}
-                    />
-                  </div>
-                  <span>{stats.distribution[star]}</span>
-                </div>
-              ))}
-            </div>
-          </div>
+    <div className="p-4 lg:p-8 space-y-6">
+      {/* Header */}
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            Modération des Avis
+          </h1>
+          <p className="text-gray-500 dark:text-gray-400 mt-1">
+            {reviews.length} avis trouvé(s)
+          </p>
         </div>
-      )}
-
-      {/* Tabs */}
-      <div className="flex gap-4 mb-6">
-        <button
-          onClick={() => setActiveTab('pending')}
-          className={`px-6 py-3 rounded-lg font-medium ${
-            activeTab === 'pending'
-              ? 'bg-yellow-600 text-white'
-              : 'bg-gray-200 text-gray-700'
-          }`}
-        >
-          En attente ({pendingReviews.length})
-        </button>
-        <button
-          onClick={() => setActiveTab('approved')}
-          className={`px-6 py-3 rounded-lg font-medium ${
-            activeTab === 'approved'
-              ? 'bg-green-600 text-white'
-              : 'bg-gray-200 text-gray-700'
-          }`}
-        >
-          Approuvés ({approvedReviews.length})
-        </button>
       </div>
 
-      {/* Liste des avis */}
+      {/* Filters */}
+      <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm">
+        <div className="flex items-center gap-2 mb-4">
+          <FunnelIcon className="w-5 h-5 text-purple-600" />
+          <h3 className="font-semibold text-gray-900 dark:text-white">Filtres</h3>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          {[
+            { value: 'pending', label: 'En attente', count: stats.pending },
+            { value: 'approved', label: 'Approuvés', count: stats.approved },
+            { value: 'rejected', label: 'Rejetés', count: stats.rejected },
+            { value: 'all', label: 'Tous', count: stats.total },
+          ].map((item) => (
+            <button
+              key={item.value}
+              onClick={() => setFilter(item.value)}
+              className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                filter === item.value
+                  ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg'
+                  : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+              }`}
+            >
+              {item.label} ({item.count})
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Reviews List */}
       <div className="space-y-4">
-        {activeTab === 'pending' ? (
-          pendingReviews.length === 0 ? (
-            <div className="bg-white rounded-lg shadow p-8 text-center text-gray-500">
-              Aucun avis en attente
-            </div>
-          ) : (
-            pendingReviews.map((review) => (
-              <div key={review.id} className="bg-white rounded-lg shadow-lg p-6">
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <div className="flex items-center gap-3 mb-2">
-                      <div className="flex text-xl">{renderStars(review.rating)}</div>
-                      <span className="text-sm text-gray-500">
+        {loading ? (
+          <div className="bg-white dark:bg-gray-800 rounded-2xl p-12 text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
+            <p className="mt-4 text-gray-500">Chargement...</p>
+          </div>
+        ) : reviews.length === 0 ? (
+          <div className="bg-white dark:bg-gray-800 rounded-2xl p-12 text-center">
+            <ChatBubbleLeftIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+            <p className="text-gray-500 dark:text-gray-400">Aucun avis trouvé</p>
+          </div>
+        ) : (
+          reviews.map((review) => (
+            <div
+              key={review.id}
+              className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow"
+            >
+              <div className="flex flex-col lg:flex-row lg:items-start gap-6">
+                {/* Left: Client Info */}
+                <div className="flex items-start gap-4 lg:w-1/3">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white font-bold flex-shrink-0">
+                    {review.client?.firstName?.[0]}{review.client?.lastName?.[0]}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-gray-900 dark:text-white">
+                      {review.client?.firstName} {review.client?.lastName}
+                    </h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
+                      {review.client?.email}
+                    </p>
+                    <div className="flex items-center gap-2 mt-2">
+                      <CalendarIcon className="w-4 h-4 text-gray-400" />
+                      <span className="text-xs text-gray-500 dark:text-gray-400">
                         {new Date(review.createdAt).toLocaleDateString('fr-FR')}
                       </span>
                     </div>
-                    <h3 className="font-bold text-lg">{review.title}</h3>
-                    <p className="text-sm text-gray-600">
-                      Par {review.client?.firstName} {review.client?.lastName}
-                    </p>
                   </div>
-                  <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs">
-                    En attente
-                  </span>
                 </div>
 
-                <p className="text-gray-700 mb-4">{review.content}</p>
-
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => handleApprove(review.id)}
-                    className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700"
-                  >
-                    ✓ Approuver
-                  </button>
-                  <button
-                    onClick={() => handleReject(review.id)}
-                    className="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700"
-                  >
-                    ✕ Rejeter
-                  </button>
-                </div>
-              </div>
-            ))
-          )
-        ) : (
-          approvedReviews.map((review) => (
-            <div key={review.id} className="bg-white rounded-lg shadow-lg p-6">
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="flex text-xl">{renderStars(review.rating)}</div>
-                    {review.isFeatured && (
-                      <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-xs">
-                        ⭐ En vedette
-                      </span>
-                    )}
+                {/* Center: Review Content */}
+                <div className="flex-1 lg:w-1/2">
+                  <div className="flex items-center justify-between mb-3">
+                    {renderStars(review.rating)}
+                    {getStatusBadge(review.status)}
                   </div>
-                  <h3 className="font-bold text-lg">{review.title}</h3>
-                  <p className="text-sm text-gray-600">
-                    Par {review.client?.firstName} {review.client?.lastName}
+                  
+                  <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                    {review.comment}
                   </p>
+
+                  {review.service && (
+                    <div className="mt-3 inline-flex items-center gap-2 px-3 py-1 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                      <span className="text-sm text-purple-700 dark:text-purple-400">
+                        Service: {review.service.name}
+                      </span>
+                    </div>
+                  )}
                 </div>
-                <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs">
-                  Approuvé
-                </span>
+
+                {/* Right: Actions */}
+                <div className="flex lg:flex-col gap-2 lg:w-auto">
+                  {review.status === 'pending' && (
+                    <>
+                      <button
+                        onClick={() => handleApprove(review.id)}
+                        className="flex items-center justify-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium transition-colors"
+                      >
+                        <CheckCircleIcon className="w-5 h-5" />
+                        <span className="hidden sm:inline">Approuver</span>
+                      </button>
+                      <button
+                        onClick={() => handleReject(review.id)}
+                        className="flex items-center justify-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium transition-colors"
+                      >
+                        <XCircleIcon className="w-5 h-5" />
+                        <span className="hidden sm:inline">Rejeter</span>
+                      </button>
+                    </>
+                  )}
+                  {review.status === 'approved' && (
+                    <button
+                      onClick={() => handleReject(review.id)}
+                      className="flex items-center justify-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium transition-colors"
+                    >
+                      <XCircleIcon className="w-5 h-5" />
+                      <span className="hidden sm:inline">Retirer</span>
+                    </button>
+                  )}
+                  {review.status === 'rejected' && (
+                    <button
+                      onClick={() => handleApprove(review.id)}
+                      className="flex items-center justify-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium transition-colors"
+                    >
+                      <CheckCircleIcon className="w-5 h-5" />
+                      <span className="hidden sm:inline">Réactiver</span>
+                    </button>
+                  )}
+                </div>
               </div>
-
-              <p className="text-gray-700 mb-4">{review.content}</p>
-
-              <button
-                onClick={() => handleToggleFeatured(review.id)}
-                className={`px-4 py-2 rounded-lg ${
-                  review.isFeatured
-                    ? 'bg-gray-300 hover:bg-gray-400'
-                    : 'bg-yellow-600 text-white hover:bg-yellow-700'
-                }`}
-              >
-                {review.isFeatured ? 'Retirer de la vedette' : 'Mettre en vedette'}
-              </button>
             </div>
           ))
         )}

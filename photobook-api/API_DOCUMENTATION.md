@@ -1,7 +1,7 @@
 # 📚 DOCUMENTATION API - PHOTOBOOK STUDIO
 
 **Version :** 1.0  
-**Base URL :** `http://localhost/photobook-api/public/api`  
+**Base URL :** `http://localhost:8000/api`  
 **Date :** 10 mars 2026
 
 ---

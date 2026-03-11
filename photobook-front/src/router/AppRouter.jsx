@@ -18,6 +18,8 @@ import ClientDashboard from '../pages/ClientDashboard';
 
 // Pages admin
 import AdminDashboard from '../pages/AdminDashboard';
+import BookingsManagement from '../pages/admin/BookingsManagement';
+import PhotosManagement from '../pages/admin/PhotosManagement';
 import ServicesManagement from '../pages/admin/ServicesManagement';
 import ReviewsModeration from '../pages/admin/ReviewsModeration';
 import EmployeesManagement from '../pages/admin/EmployeesManagement';
@@ -84,7 +86,8 @@ const AppRouter = () => {
           }
         >
           <Route index element={<AdminDashboard />} />
-          <Route path="bookings" element={<div>Gestion réservations</div>} />
+          <Route path="bookings" element={<BookingsManagement />} />
+          <Route path="photos" element={<PhotosManagement />} />
           <Route path="services" element={<ServicesManagement />} />
           <Route path="reviews" element={<ReviewsModeration />} />
           <Route path="employees" element={<EmployeesManagement />} />
