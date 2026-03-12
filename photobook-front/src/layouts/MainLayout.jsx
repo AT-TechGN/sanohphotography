@@ -3,15 +3,15 @@ import Navbar from '../components/common/Navbar';
 import Footer from '../components/common/Footer';
 import Notification from '../components/common/Notification';
 
-const MainLayout = () => {
+const MainLayout = ({ hideNavbar = false, hideFooter = false }) => {
   return (
     <div className="flex flex-col min-h-screen">
-      <Navbar />
+      {!hideNavbar && <Navbar />}
       <Notification />
       <main className="flex-grow">
         <Outlet />
       </main>
-      <Footer />
+      {!hideFooter && <Footer />}
     </div>
   );
 };

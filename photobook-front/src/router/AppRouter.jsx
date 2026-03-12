@@ -53,13 +53,11 @@ const AppRouter = () => {
           <Route path="register" element={<RegisterPage />} />
         </Route>
 
-        {/* Routes protégées - Client */}
+        {/* Routes publiques - Réservation */}
         <Route
           path="/booking"
           element={
-            <ProtectedRoute roles={['ROLE_CLIENT']}>
-              <MainLayout />
-            </ProtectedRoute>
+            <MainLayout hideNavbar hideFooter />
           }
         >
           <Route index element={<BookingPage />} />
@@ -102,3 +100,4 @@ const AppRouter = () => {
 };
 
 export default AppRouter;
+

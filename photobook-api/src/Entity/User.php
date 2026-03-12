@@ -34,9 +34,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['user:read', 'review:read', 'booking:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 180)]
+    #[Groups(['user:read'])]
     private ?string $email = null;
 
     /**
@@ -52,15 +54,19 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $password = null;
 
     #[ORM\Column(length: 80)]
+    #[Groups(['user:read', 'review:read', 'booking:read'])]
     private ?string $firstName = null;
 
     #[ORM\Column(length: 80)]
+    #[Groups(['user:read', 'review:read', 'booking:read'])]
     private ?string $lastName = null;
 
     #[ORM\Column(length: 20, nullable: true)]
+    #[Groups(['user:read'])]
     private ?string $phone = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(['user:read', 'review:read'])]
     private ?string $avatar = null;
 
     #[ORM\Column]

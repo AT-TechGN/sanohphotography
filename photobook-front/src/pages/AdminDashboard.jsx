@@ -154,12 +154,10 @@ const AdminDashboard = () => {
             </button>
           ))}
         </div>
-      </div> {/* CORRECTION 2 : </div> fermant du flex header manquant */}
+      </div>
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-
-        {/* CORRECTION 3 : </div> fermants manquants pour chaque card KPI */}
         <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl p-6 text-white shadow-lg">
           <div className="flex items-center justify-between mb-4">
             <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
@@ -225,8 +223,7 @@ const AdminDashboard = () => {
           <div className="text-3xl font-bold mb-1">{kpis?.confirmationRate || 0}%</div>
           <div className="text-sm text-amber-100">Taux de confirmation</div>
         </div>
-
-      </div> {/* CORRECTION 4 : </div> fermant de la grille KPI manquant */}
+      </div>
 
       {/* Charts Row 1 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -261,7 +258,7 @@ const AdminDashboard = () => {
             </BarChart>
           </ResponsiveContainer>
         </div>
-      </div> {/* CORRECTION 5 : </div> fermant de la grille charts row 1 manquant */}
+      </div>
 
       {/* Charts Row 2 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -299,7 +296,7 @@ const AdminDashboard = () => {
             </BarChart>
           </ResponsiveContainer>
         </div>
-      </div> {/* CORRECTION 6 : </div> fermant de la grille charts row 2 manquant */}
+      </div>
 
       {/* Activity & Upcoming Events */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -313,7 +310,7 @@ const AdminDashboard = () => {
                   <p className="text-sm text-gray-900 dark:text-white font-medium">{activity.message}</p>
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{new Date(activity.timestamp).toLocaleString('fr-FR')}</p>
                 </div>
-              </div> 
+              </div>
             ))}
           </div>
         </div>  
@@ -341,8 +338,8 @@ const AdminDashboard = () => {
               <p className="text-center text-gray-500 dark:text-gray-400 py-8">Aucune séance prévue dans les 7 prochains jours</p>
             )}
           </div>
-        </div> {/* CORRECTION 9 : </div> fermant du panel événements manquant */}
-      </div> {/* CORRECTION 10 : </div> fermant de la grille activité/événements manquant */}
+        </div>
+      </div>
 
       {/* Quick Actions */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -367,7 +364,7 @@ const AdminDashboard = () => {
         </Link>
       </div>
 
-    </div>  
+    </div>
   );
 };
 

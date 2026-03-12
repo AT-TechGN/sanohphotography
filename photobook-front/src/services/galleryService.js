@@ -5,6 +5,14 @@ import api from './api';
  */
 const galleryService = {
   /**
+   * Obtenir toutes les photos (pour la page d'accueil)
+   */
+  async getAll(page = 1, limit = 20) {
+    const response = await api.get(`/gallery?page=${page}&limit=${limit}`);
+    return response.data;
+  },
+
+  /**
    * Obtenir les photos de la galerie avec filtres
    */
   async getPhotos(params = {}) {
