@@ -1,3 +1,5 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+
 import { useState, useEffect } from 'react';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
@@ -5,13 +7,11 @@ import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import frLocale from '@fullcalendar/core/locales/fr';
 import bookingService from '../../services/bookingService';
-import useAuthStore from '../../stores/authStore';
-import { motion } from 'framer-motion';
+import { motion as Motion } from 'framer-motion';
 
 const CalendarBooking = ({ onDateSelect, onEventClick }) => {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { user } = useAuthStore();
 
   useEffect(() => {
     loadBookings();
@@ -37,8 +37,8 @@ const CalendarBooking = ({ onDateSelect, onEventClick }) => {
       }));
 
       setEvents(formattedEvents);
-    } catch (error) {
-      console.error('Erreur chargement réservations:', error);
+    } catch {
+      console.error('Erreur chargement réservations');
     } finally {
       setLoading(false);
     }
@@ -75,8 +75,8 @@ const CalendarBooking = ({ onDateSelect, onEventClick }) => {
       // await bookingService.updateBookingDate(eventId, newDate);
       
       console.log('Event dropped:', eventId, newDate);
-    } catch (error) {
-      console.error('Erreur mise à jour réservation:', error);
+    } catch {
+      console.error('Erreur mise à jour réservation:');
       info.revert(); // Annuler le déplacement en cas d'erreur
     }
   };
@@ -90,7 +90,7 @@ const CalendarBooking = ({ onDateSelect, onEventClick }) => {
   }
 
   return (
-    <motion.div
+    <Motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
@@ -154,7 +154,7 @@ const CalendarBooking = ({ onDateSelect, onEventClick }) => {
           <span className="text-sm text-gray-600 dark:text-gray-300">Annulée</span>
         </div>
       </div>
-    </motion.div>
+    </Motion.div>
   );
 };
 

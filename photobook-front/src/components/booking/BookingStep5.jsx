@@ -31,13 +31,13 @@ const BookingStep5 = () => {
     try {
       setLoading(true);
       const bookingData = getBookingData();
-      const result = await bookingService.create(bookingData);
+      await bookingService.create(bookingData);
 
       showSuccess('Réservation créée avec succès !');
       reset();
       navigate('/dashboard');
-    } catch (error) {
-      showError(error.response?.data?.error || 'Erreur lors de la réservation');
+    } catch {
+      showError('Erreur lors de la réservation');
     } finally {
       setLoading(false);
     }

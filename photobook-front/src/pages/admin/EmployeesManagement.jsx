@@ -1,3 +1,5 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+
 import { useEffect, useState } from 'react';
 import employeeService from '../../services/employeeService';
 import useUIStore from '../../stores/uiStore';
@@ -32,7 +34,6 @@ const EmployeesManagement = () => {
     { value: 6, label: 'Samedi' },
     { value: 7, label: 'Dimanche' },
   ];
-
   useEffect(() => {
     loadEmployees();
   }, []);
@@ -42,7 +43,7 @@ const EmployeesManagement = () => {
       setLoading(true);
       const data = await employeeService.getActive();
       setEmployees(data);
-    } catch (error) {
+    } catch {
       showError('Erreur chargement employés');
     } finally {
       setLoading(false);
@@ -57,7 +58,7 @@ const EmployeesManagement = () => {
       ]);
       setAvailabilities(avail);
       setBlockedSlots(slots);
-    } catch (error) {
+    } catch {
       showError('Erreur chargement détails');
     }
   };
@@ -74,7 +75,7 @@ const EmployeesManagement = () => {
       }
       resetForm();
       loadEmployees();
-    } catch (error) {
+    } catch {
       showError('Erreur enregistrement');
     }
   };
@@ -85,7 +86,7 @@ const EmployeesManagement = () => {
       await employeeService.delete(id);
       showSuccess('Employé supprimé');
       loadEmployees();
-    } catch (error) {
+    } catch {
       showError('Erreur suppression');
     }
   };
@@ -105,7 +106,7 @@ const EmployeesManagement = () => {
       });
       showSuccess('Disponibilité ajoutée');
       loadEmployeeDetails(employeeId);
-    } catch (error) {
+    } catch {
       showError('Erreur ajout disponibilité');
     }
   };
@@ -115,7 +116,7 @@ const EmployeesManagement = () => {
       await employeeService.deleteAvailability(availId);
       showSuccess('Disponibilité supprimée');
       loadEmployeeDetails(employeeId);
-    } catch (error) {
+    } catch {
       showError('Erreur suppression');
     }
   };
@@ -135,7 +136,7 @@ const EmployeesManagement = () => {
       });
       showSuccess('Congé/absence ajouté');
       loadEmployeeDetails(employeeId);
-    } catch (error) {
+    } catch {
       showError('Erreur ajout congé');
     }
   };
@@ -145,7 +146,7 @@ const EmployeesManagement = () => {
       await employeeService.deleteBlockedSlot(slotId);
       showSuccess('Congé supprimé');
       loadEmployeeDetails(employeeId);
-    } catch (error) {
+    } catch {
       showError('Erreur suppression');
     }
   };

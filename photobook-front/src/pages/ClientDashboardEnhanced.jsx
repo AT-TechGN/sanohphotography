@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion as Motion } from 'framer-motion';
 import { 
   CalendarIcon, 
   PhotoIcon, 
@@ -34,7 +34,7 @@ const ClientDashboardEnhanced = () => {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <motion.div
+        <Motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
@@ -45,7 +45,7 @@ const ClientDashboardEnhanced = () => {
           <p className="text-gray-600 dark:text-gray-300">
             Gérez vos réservations et consultez vos photos
           </p>
-        </motion.div>
+        </Motion.div>
 
         {/* Tabs */}
         <div className="mb-8">
@@ -78,7 +78,7 @@ const ClientDashboardEnhanced = () => {
         </div>
 
         {/* Content */}
-        <motion.div
+        <Motion.div
           key={activeTab}
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -145,7 +145,7 @@ const ClientDashboardEnhanced = () => {
               </div>
             </div>
           )}
-        </motion.div>
+        </Motion.div>
       </div>
     </div>
   );

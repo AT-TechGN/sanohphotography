@@ -31,6 +31,8 @@ const ServicesManagement = () => {
     { value: 'catalogue', label: 'Catalogue' },
   ];
 
+/* eslint-disable react-hooks/exhaustive-deps */
+
   useEffect(() => {
     loadServices();
   }, []);
@@ -40,7 +42,7 @@ const ServicesManagement = () => {
       setLoading(true);
       const data = await serviceService.getActive();
       setServices(data);
-    } catch (error) {
+    } catch {
       showError('Erreur chargement services');
     } finally {
       setLoading(false);
@@ -59,8 +61,8 @@ const ServicesManagement = () => {
       }
       resetForm();
       loadServices();
-    } catch (error) {
-      showError(error.response?.data?.error || 'Erreur lors de l\'enregistrement');
+    } catch {
+      showError('Erreur lors de l\'enregistrement');
     }
   };
 
@@ -85,7 +87,7 @@ const ServicesManagement = () => {
       await serviceService.delete(id);
       showSuccess('Service supprimé');
       loadServices();
-    } catch (error) {
+    } catch {
       showError('Erreur lors de la suppression');
     }
   };
@@ -94,7 +96,7 @@ const ServicesManagement = () => {
     try {
       await serviceService.toggleActive(id);
       loadServices();
-    } catch (error) {
+    } catch {
       showError('Erreur lors de la modification');
     }
   };

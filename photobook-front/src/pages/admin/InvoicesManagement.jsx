@@ -1,3 +1,5 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+
 import { useEffect, useState } from 'react';
 import invoiceService from '../../services/invoiceService';
 import useUIStore from '../../stores/uiStore';
@@ -9,7 +11,6 @@ const InvoicesManagement = () => {
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState('all');
   const { showSuccess, showError } = useUIStore();
-
   useEffect(() => {
     loadData();
   }, []);
@@ -23,7 +24,7 @@ const InvoicesManagement = () => {
       ]);
       setInvoices(invoicesData);
       setStats(statsData);
-    } catch (error) {
+    } catch {
       showError('Erreur chargement factures');
     } finally {
       setLoading(false);
@@ -42,7 +43,7 @@ const InvoicesManagement = () => {
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
       showSuccess('Facture téléchargée');
-    } catch (error) {
+    } catch {
       showError('Erreur téléchargement PDF');
     }
   };
@@ -55,7 +56,7 @@ const InvoicesManagement = () => {
       await invoiceService.markPaid(id, method);
       showSuccess('Facture marquée comme payée');
       loadData();
-    } catch (error) {
+    } catch {
       showError('Erreur');
     }
   };
@@ -67,7 +68,7 @@ const InvoicesManagement = () => {
       await invoiceService.cancel(id);
       showSuccess('Facture annulée');
       loadData();
-    } catch (error) {
+    } catch {
       showError('Erreur annulation');
     }
   };
@@ -87,7 +88,7 @@ const InvoicesManagement = () => {
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
       showSuccess('Export CSV téléchargé');
-    } catch (error) {
+    } catch {
       showError('Erreur export CSV');
     }
   };

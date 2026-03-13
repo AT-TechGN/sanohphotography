@@ -214,7 +214,7 @@ const PhotosManagement = () => {
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       handleFileUpload(e.dataTransfer.files);
     }
-  }, [selectedAlbum]);
+  }, [selectedAlbum, handleFileUpload]);
 
   const filteredAlbums = filterCategory === 'all' 
     ? albums 

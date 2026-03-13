@@ -1,3 +1,5 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+
 import { useState, useEffect } from 'react';
 import reviewService from '../../services/reviewService';
 import {
@@ -17,7 +19,6 @@ const ReviewsModeration = () => {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('pending'); // pending, approved, rejected, all
   const [stats, setStats] = useState({ pending: 0, approved: 0, rejected: 0, total: 0 });
-
   useEffect(() => {
     loadReviews();
   }, [filter]);

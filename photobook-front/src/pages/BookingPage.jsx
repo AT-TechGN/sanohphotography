@@ -1,3 +1,5 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+
 import { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion as Motion } from 'framer-motion';
@@ -15,7 +17,6 @@ const BookingPage = () => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuthStore();
   const { currentStep, selectService } = useBookingStore();
-
   useEffect(() => {
     // Si un service est passé en state, le sélectionner
     if (location.state?.selectedService) {

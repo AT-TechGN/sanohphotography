@@ -6,7 +6,7 @@ import MainLayout from '../layouts/MainLayout';
 import AdminLayout from '../layouts/AdminLayout';
 
 // Pages publiques
-import HomePage from '../pages/HomePageNew';
+import HomePage from '../pages/HomePage';
 import GalleryPage from '../pages/GalleryPage';
 import ServicesPage from '../pages/ServicesPage';
 import BookingPage from '../pages/BookingPage';
@@ -34,6 +34,7 @@ const ProtectedRoute = ({ children, roles = [] }) => {
   }
 
   if (roles.length > 0 && !roles.some((role) => hasRole(role))) {
+    
     return <Navigate to="/dashboard" replace />;
   }
 

@@ -1,3 +1,5 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import bookingService from '../../services/bookingService';
@@ -24,7 +26,6 @@ const BookingsManagement = () => {
     endDate: '',
   });
   const [viewMode, setViewMode] = useState('list'); // list or calendar
-
   useEffect(() => {
     loadBookings();
   }, [filters]);

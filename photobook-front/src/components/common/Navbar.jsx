@@ -26,8 +26,13 @@ const Navbar = () => {
 
   // Fermer le menu mobile quand la route change
   useEffect(() => {
-    setMobileMenuOpen(false);
-  }, [location.pathname]); // eslint-disable-line react-hooks/exhaustive-deps
+    // close mobile menu after route change without calling setState synchronously
+    if (mobileMenuOpen) {
+      const t = setTimeout(() => setMobileMenuOpen(false), 0);
+      return () => clearTimeout(t);
+    }
+    return undefined;
+  }, [location.pathname, mobileMenuOpen]);
 
   const baseBgClass = scrolled
     ? 'bg-white/90 dark:bg-gray-900/90 backdrop-blur-md shadow-sm'

@@ -77,7 +77,7 @@ const PhotoUploader = ({ onUploadSuccess }) => {
       showSuccess(`${files.length} photo(s) uploadée(s) avec succès`);
       setFiles([]);
       if (onUploadSuccess) onUploadSuccess();
-    } catch (error) {
+    } catch {
       showError('Erreur lors de l\'upload');
     } finally {
       setUploading(false);

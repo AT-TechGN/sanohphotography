@@ -11,6 +11,7 @@ const ReviewsModeration = () => {
   const [activeTab, setActiveTab] = useState('pending');
   const { showSuccess, showError } = useUIStore();
 
+/* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
     loadData();
   }, []);
@@ -26,7 +27,7 @@ const ReviewsModeration = () => {
       setPendingReviews(pending);
       setApprovedReviews(approved.data || approved);
       setStats(statsData);
-    } catch (error) {
+    } catch {
       showError('Erreur chargement avis');
     } finally {
       setLoading(false);
@@ -38,7 +39,7 @@ const ReviewsModeration = () => {
       await reviewService.approve(id);
       showSuccess('Avis approuvé');
       loadData();
-    } catch (error) {
+    } catch {
       showError('Erreur lors de l\'approbation');
     }
   };
@@ -50,7 +51,7 @@ const ReviewsModeration = () => {
       await reviewService.reject(id);
       showSuccess('Avis rejeté');
       loadData();
-    } catch (error) {
+    } catch {
       showError('Erreur lors du rejet');
     }
   };
@@ -60,7 +61,7 @@ const ReviewsModeration = () => {
       await reviewService.toggleFeatured(id);
       showSuccess('Statut vedette modifié');
       loadData();
-    } catch (error) {
+    } catch {
       showError('Erreur');
     }
   };

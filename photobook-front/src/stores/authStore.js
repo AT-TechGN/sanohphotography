@@ -25,8 +25,8 @@ const useAuthStore = create((set, get) => ({
         loading: false 
       });
       return { success: true };
-    } catch (error) {
-      const errorMessage = error.response?.data?.error || 'Erreur de connexion';
+    } catch {
+      const errorMessage = 'Erreur de connexion';
       set({ 
         error: errorMessage, 
         loading: false 
@@ -44,8 +44,8 @@ const useAuthStore = create((set, get) => ({
       await authService.register(data);
       set({ loading: false });
       return { success: true };
-    } catch (error) {
-      const errorMessage = error.response?.data?.error || 'Erreur lors de l\'inscription';
+    } catch {
+      const errorMessage = 'Erreur lors de l\'inscription';
       set({ 
         error: errorMessage, 
         loading: false 
@@ -82,7 +82,7 @@ const useAuthStore = create((set, get) => ({
       const user = await authService.getCurrentUser();
       localStorage.setItem('user', JSON.stringify(user));
       set({ user });
-    } catch (error) {
+    } catch {
       // Token invalide, déconnecter
       get().logout();
     }
