@@ -310,7 +310,6 @@ final class DashboardController extends AbstractController
 
         $employeeStats = [];
         foreach ($performance as $item) {
-            $employee = $this->em ?? null;
             $emp = $this->bookingRepository->getEntityManager()
                 ->getRepository(\App\Entity\Employee::class)
                 ->find($item['employeeId']);

@@ -38,5 +38,24 @@ class AlbumRepository extends ServiceEntityRepository
 
         return (int) $qb->getQuery()->getSingleScalarResult();
     }
-}
 
+    /**
+     * CORRECTION : méthode manquante utilisée par AdminAlbumController
+     */
+    public function findByCriteria(?string $category, ?bool $isPublic, int $page = 1, int $limit = 20): array
+    {
+        $qb = $this->createQueryBuilder('a')
+            ->orderBy('a.createdAt', 'DESC')
+            ->setFirstResult(($page - 1) * $limit)
+            ->setMaxResults($limit);
+
+        if ($category) {
+            $qb->andWhere('a.category = :category')->setParameter('category', $category);
+        }
+        if ($isPublic !== null) {
+            $qb->andWhere('a.isPublic = :isPublic')->setParameter('isPublic', $isPublic);
+        }
+
+        return $qb->getQuery()->getResult();
+    }
+}

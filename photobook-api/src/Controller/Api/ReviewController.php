@@ -45,15 +45,13 @@ final class ReviewController extends AbstractController
         $reviews = $qb->getQuery()->getResult();
 
         return $this->json([
-            'data' => $reviews,
+            'data' => array_map([$this, 'serializeReview'], $reviews),
             'pagination' => [
                 'page' => $page,
                 'limit' => $limit,
                 'total' => $total,
-                'totalPages' => ceil($total / $limit)
+                'totalPages' => ceil($total / $limit),
             ]
-        ], Response::HTTP_OK, [], [
-            'groups' => ['review:read']
         ]);
     }
 
@@ -70,9 +68,7 @@ final class ReviewController extends AbstractController
             ['createdAt' => 'DESC']
         );
 
-        return $this->json($reviews, Response::HTTP_OK, [], [
-            'groups' => ['review:read']
-        ]);
+        return $this->json(array_map([$this, 'serializeReview'], $reviews));
     }
 
     /**
@@ -87,8 +83,11 @@ final class ReviewController extends AbstractController
 
         $review = new Review();
         $review->setRating($data['rating'] ?? null);
-        $review->setTitle($data['title'] ?? null);
-        $review->setContent($data['content'] ?? null);
+        // CORRECTION : le front envoie 'comment', l'entité a 'content' — accepter les deux
+        $commentText = $data['comment'] ?? $data['content'] ?? null;
+        $review->setContent($commentText);
+        // Title auto-généré si non fourni (champ obligatoire dans l'entité)
+        $review->setTitle($data['title'] ?? ('Avis ' . date('d/m/Y')));
         $review->setStatus(ReviewStatus::PENDING->value);
         $review->setIsFeatured(false);
         $review->setCreatedAt(new \DateTime());
@@ -229,5 +228,30 @@ final class ReviewController extends AbstractController
             'pendingReviews' => $totalPending,
             'distribution' => $distribution
         ]);
+    }
+
+    /**
+     * Sérialisation manuelle — évite les problèmes de lazy loading
+     * et expose les champs exacts attendus par le frontend
+     */
+    private function serializeReview(\App\Entity\Review $r): array
+    {
+        $client = $r->getClient();
+        return [
+            'id'         => $r->getId(),
+            'rating'     => $r->getRating(),
+            'title'      => $r->getTitle(),
+            'content'    => $r->getContent(),
+            'comment'    => $r->getContent(), // alias pour compatibilité frontend
+            'status'     => $r->getStatus(),
+            'isFeatured' => $r->isFeatured(),
+            'createdAt'  => $r->getCreatedAt()?->format('c'),
+            'client'     => $client ? [
+                'id'        => $client->getId(),
+                'firstName' => $client->getFirstName(),
+                'lastName'  => $client->getLastName(),
+                'avatar'    => $client->getAvatar(),
+            ] : null,
+        ];
     }
 }

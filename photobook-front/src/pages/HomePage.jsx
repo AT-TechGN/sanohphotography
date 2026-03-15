@@ -144,11 +144,11 @@ const HomePage = () => {
             res.data.map((r) => ({
               id:       r.id,
               stars:    r.rating ?? 5,
-              text:     r.comment,
-              author:   r.author,
+              text:     r.content ?? r.comment,
+              author:   r.client ? `${r.client.firstName} ${r.client.lastName}` : (r.author ?? 'Client'),
               type:     r.service || 'Client',
               avatar:   '👤',
-              featured: r.featured ?? false,
+              featured: r.isFeatured ?? false,
             }))
           );
         }

@@ -8,6 +8,9 @@ use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @extends ServiceEntityRepository<Photo>
+ *
+ * CORRECTION : Photo entity a takenAt, PAS createdAt.
+ * Les requêtes utilisant p.createdAt causaient un 500.
  */
 class PhotoRepository extends ServiceEntityRepository
 {
@@ -18,6 +21,7 @@ class PhotoRepository extends ServiceEntityRepository
 
     /**
      * Find public photos with filters
+     * CORRECTION : p.createdAt → p.takenAt (champ réel de l'entité)
      */
     public function findPublicPhotos(string $period = 'all', ?string $category = null, int $page = 1, int $limit = 20): array
     {
@@ -36,13 +40,14 @@ class PhotoRepository extends ServiceEntityRepository
 
         if ($period !== 'all') {
             $startDate = match($period) {
-                'today' => (new \DateTime())->format('Y-m-d 00:00:00'),
-                'week' => (new \DateTime())->modify('-1 week')->format('Y-m-d 00:00:00'),
-                'month' => (new \DateTime())->modify('-1 month')->format('Y-m-d 00:00:00'),
-                default => null
+                'today' => (new \DateTime())->setTime(0, 0, 0),
+                'week'  => (new \DateTime())->modify('-1 week'),
+                'month' => (new \DateTime())->modify('-1 month'),
+                default => null,
             };
             if ($startDate) {
-                $qb->andWhere('p.createdAt > :startDate')->setParameter('startDate', $startDate);
+                // CORRECTION : utilise p.takenAt (Photo n'a pas createdAt)
+                $qb->andWhere('p.takenAt > :startDate')->setParameter('startDate', $startDate);
             }
         }
 
@@ -62,22 +67,19 @@ class PhotoRepository extends ServiceEntityRepository
 
         if ($period !== 'all') {
             $startDate = match($period) {
-                'today' => (new \DateTime())->format('Y-m-d 00:00:00'),
-                'week' => (new \DateTime())->modify('-1 week')->format('Y-m-d 00:00:00'),
-                'month' => (new \DateTime())->modify('-1 month')->format('Y-m-d 00:00:00'),
-                default => null
+                'today' => (new \DateTime())->setTime(0, 0, 0),
+                'week'  => (new \DateTime())->modify('-1 week'),
+                'month' => (new \DateTime())->modify('-1 month'),
+                default => null,
             };
             if ($startDate) {
-                $qb->andWhere('p.createdAt > :startDate')->setParameter('startDate', $startDate);
+                $qb->andWhere('p.takenAt > :startDate')->setParameter('startDate', $startDate);
             }
         }
 
         return (int) $qb->getQuery()->getSingleScalarResult();
     }
 
-    /**
-     * Featured photos for hero
-     */
     public function findFeaturedPhotos(int $limit = 10): array
     {
         return $this->createQueryBuilder('p')
@@ -88,9 +90,6 @@ class PhotoRepository extends ServiceEntityRepository
             ->getResult();
     }
 
-    /**
-     * Admin: photos by album or all
-     */
     public function findByAlbumOrAll(?int $albumId, int $page = 1, int $limit = 20): array
     {
         $qb = $this->createQueryBuilder('p')
@@ -108,14 +107,10 @@ class PhotoRepository extends ServiceEntityRepository
 
     public function countByAlbumOrAll(?int $albumId): int
     {
-        $qb = $this->createQueryBuilder('p')
-            ->select('COUNT(p.id)');
-
+        $qb = $this->createQueryBuilder('p')->select('COUNT(p.id)');
         if ($albumId) {
             $qb->where('p.album = :albumId')->setParameter('albumId', $albumId);
         }
-
         return (int) $qb->getQuery()->getSingleScalarResult();
     }
 }
-
