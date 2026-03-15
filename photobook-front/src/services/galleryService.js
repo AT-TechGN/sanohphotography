@@ -8,7 +8,7 @@ const galleryService = {
    * Obtenir toutes les photos (pour la page d'accueil)
    */
   async getAll(page = 1, limit = 20) {
-    const response = await api.get(`/gallery?page=${page}&limit=${limit}`);
+    const response = await api.get(`/api/gallery/photos?page=${page}&limit=${limit}`);
     return response.data;
   },
 
@@ -23,8 +23,7 @@ const galleryService = {
       limit,
       ...(category && { category }),
     });
-
-    const response = await api.get(`/gallery?${queryParams}`);
+    const response = await api.get(`/api/gallery/photos?${queryParams}`);
     return response.data;
   },
 
@@ -32,15 +31,21 @@ const galleryService = {
    * Obtenir les photos en vedette
    */
   async getFeatured(limit = 10) {
-    const response = await api.get(`/gallery/featured?limit=${limit}`);
-    return response.data;
+    try {
+      const response = await api.get(`/api/gallery/featured?limit=${limit}`);
+      const raw = response.data;
+      return Array.isArray(raw) ? { data: raw } : raw ?? { data: [] };
+    } catch (error) {
+      console.error('Gallery featured fetch error:', error);
+      return { data: [] };
+    }
   },
 
   /**
    * Obtenir les albums publics
    */
   async getAlbums(page = 1, limit = 12) {
-    const response = await api.get(`/gallery/albums?page=${page}&limit=${limit}`);
+    const response = await api.get(`/api/gallery/albums?page=${page}&limit=${limit}`);
     return response.data;
   },
 
@@ -48,17 +53,23 @@ const galleryService = {
    * Obtenir les statistiques de la galerie
    */
   async getStats() {
-    const response = await api.get('/gallery/stats');
-    return response.data;
+    try {
+      const response = await api.get('/api/gallery/stats');
+      return response.data;
+    } catch (error) {
+      console.error('Gallery stats fetch error:', error);
+      return null;
+    }
   },
 
   /**
    * Obtenir un album par ID
    */
   async getAlbumById(id) {
-    const response = await api.get(`/albums/${id}`);
+    const response = await api.get(`/api/gallery/albums/${id}`);
     return response.data;
   },
 };
 
 export default galleryService;
+

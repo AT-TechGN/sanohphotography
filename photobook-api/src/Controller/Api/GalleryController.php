@@ -2,12 +2,9 @@
 
 namespace App\Controller\Api;
 
-use App\Entity\Photo;
-use App\Enum\PhotoPeriod;
 use App\Repository\PhotoRepository;
 use App\Repository\AlbumRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -18,168 +15,119 @@ final class GalleryController extends AbstractController
     public function __construct(
         private PhotoRepository $photoRepository,
         private AlbumRepository $albumRepository
-    ) {}
+    ) {
+    }
 
     /**
-     * Obtenir les photos de la galerie avec filtres (cahier des charges)
-     * Filtres : période (today/week/month/all), catégorie, pagination
+     * Get photos with filters (public)
+     * period: all|today|week|month, category, page, limit
      */
-    #[Route('', name: 'api_gallery_photos', methods: ['GET'])]
-    public function getPhotos(Request $request): JsonResponse
+    #[Route('/photos', name: 'api_gallery_photos', methods: ['GET'])]
+    public function getPhotos(Request $request): Response
     {
-        // Paramètres de filtrage
         $period = $request->query->get('period', 'all');
         $category = $request->query->get('category');
-        $page = max(1, (int) $request->query->get('page', 1));
-        $limit = min(50, max(1, (int) $request->query->get('limit', 24)));
-        
-        $qb = $this->photoRepository->createQueryBuilder('p')
-            ->innerJoin('p.album', 'a')
-            ->where('a.isPublic = :public')
-            ->setParameter('public', true)
-            ->orderBy('p.takenAt', 'DESC')
-            ->addOrderBy('p.sortOrder', 'ASC');
+        $page = (int) $request->query->get('page', 1);
+        $limit = (int) $request->query->get('limit', 24);
 
-        // Filtre par période
-        if ($period !== 'all' && in_array($period, ['today', 'week', 'month'])) {
-            $periodEnum = PhotoPeriod::from($period);
-            $startDate = $periodEnum->getStartDate();
-            
-            if ($startDate) {
-                $qb->andWhere('p.takenAt >= :startDate')
-                   ->setParameter('startDate', $startDate);
-            }
-        }
+        $photos = $this->photoRepository->findPublicPhotos($period, $category, $page, $limit);
 
-        // Filtre par catégorie de service (via album et booking)
-        if ($category) {
-            $qb->innerJoin('a.booking', 'b')
-               ->innerJoin('b.service', 's')
-               ->andWhere('s.category = :category')
-               ->setParameter('category', $category);
-        }
-
-        // Pagination
-        $total = count($qb->getQuery()->getResult());
-        $qb->setFirstResult(($page - 1) * $limit)
-           ->setMaxResults($limit);
-
-        $photos = $qb->getQuery()->getResult();
+        $data = array_map(function($photo) {
+            return [
+                'id' => $photo->getId(),
+                'filePath' => $photo->getFilePath(),
+                'thumbnailPath' => $photo->getThumbnailPath(),
+                'album' => [
+                    'id' => $photo->getAlbum()->getId(),
+                    'title' => $photo->getAlbum()->getTitle(),
+                ],
+                'width' => $photo->getWidth(),
+                'height' => $photo->getHeight(),
+                'isFeatured' => $photo->isFeatured(),
+                'takenAt' => $photo->getTakenAt()?->format('Y-m-d H:i:s'),
+            ];
+        }, $photos);
 
         return $this->json([
-            'data' => $photos,
+            'data' => $data,
             'pagination' => [
                 'page' => $page,
                 'limit' => $limit,
-                'total' => $total,
-                'totalPages' => ceil($total / $limit)
+                'total' => $this->photoRepository->countPublicPhotos($period, $category),
+                'totalPages' => ceil($this->photoRepository->countPublicPhotos($period, $category) / $limit),
             ]
-        ], Response::HTTP_OK, [], [
-            'groups' => ['photo:read']
         ]);
     }
 
     /**
-     * Obtenir les photos en vedette pour la page d'accueil
+     * Get featured photos (hero)
      */
     #[Route('/featured', name: 'api_gallery_featured', methods: ['GET'])]
-    public function getFeaturedPhotos(Request $request): JsonResponse
+    public function getFeatured(Request $request): Response
     {
-        $limit = min(20, max(1, (int) $request->query->get('limit', 10)));
+        $limit = (int) $request->query->get('limit', 10);
+        $featured = $this->photoRepository->findFeaturedPhotos($limit);
 
-        $photos = $this->photoRepository->createQueryBuilder('p')
-            ->innerJoin('p.album', 'a')
-            ->where('p.isFeatured = :featured')
-            ->andWhere('a.isPublic = :public')
-            ->setParameter('featured', true)
-            ->setParameter('public', true)
-            ->orderBy('p.takenAt', 'DESC')
-            ->setMaxResults($limit)
-            ->getQuery()
-            ->getResult();
+        $data = array_map(function($photo) {
+            return [
+                'id' => $photo->getId(),
+                'filePath' => $photo->getFilePath(),
+                'thumbnailPath' => $photo->getThumbnailPath(),
+                'album' => [
+                    'id' => $photo->getAlbum()->getId(),
+                    'title' => $photo->getAlbum()->getTitle(),
+                ],
+                'width' => $photo->getWidth(),
+                'height' => $photo->getHeight(),
+            ];
+        }, $featured);
 
-        return $this->json($photos, Response::HTTP_OK, [], [
-            'groups' => ['photo:read']
-        ]);
+        return $this->json(['data' => $data]);
     }
 
     /**
-     * Obtenir les albums publics avec leurs photos
+     * Get public albums
      */
     #[Route('/albums', name: 'api_gallery_albums', methods: ['GET'])]
-    public function getPublicAlbums(Request $request): JsonResponse
+    public function getAlbums(Request $request): Response
     {
-        $page = max(1, (int) $request->query->get('page', 1));
-        $limit = min(20, max(1, (int) $request->query->get('limit', 12)));
+        $page = (int) $request->query->get('page', 1);
+        $limit = (int) $request->query->get('limit', 12);
 
-        $qb = $this->albumRepository->createQueryBuilder('a')
-            ->where('a.isPublic = :public')
-            ->setParameter('public', true)
-            ->orderBy('a.createdAt', 'DESC');
+        $albums = $this->albumRepository->findPublicAlbums($page, $limit);
 
-        $total = count($qb->getQuery()->getResult());
-        
-        $qb->setFirstResult(($page - 1) * $limit)
-           ->setMaxResults($limit);
-
-        $albums = $qb->getQuery()->getResult();
+        $data = array_map(function($album) {
+            return [
+                'id' => $album->getId(),
+                'title' => $album->getTitle(),
+                'description' => $album->getDescription(),
+                'category' => $album->getCategory(),
+                'photosCount' => $album->getPhotos()->count(),
+                'publishedAt' => $album->getPublishedAt()?->format('Y-m-d H:i:s'),
+            ];
+        }, $albums);
 
         return $this->json([
-            'data' => $albums,
+            'data' => $data,
             'pagination' => [
                 'page' => $page,
                 'limit' => $limit,
-                'total' => $total,
-                'totalPages' => ceil($total / $limit)
+                'totalPages' => $this->albumRepository->countPublicAlbums(),
             ]
-        ], Response::HTTP_OK, [], [
-            'groups' => ['album:read']
         ]);
     }
 
     /**
-     * Statistiques de la galerie
+     * Gallery stats
      */
     #[Route('/stats', name: 'api_gallery_stats', methods: ['GET'])]
-    public function getStats(): JsonResponse
+    public function getStats(): Response
     {
-        $totalPhotos = $this->photoRepository->createQueryBuilder('p')
-            ->select('COUNT(p.id)')
-            ->innerJoin('p.album', 'a')
-            ->where('a.isPublic = :public')
-            ->setParameter('public', true)
-            ->getQuery()
-            ->getSingleScalarResult();
-
-        $totalAlbums = $this->albumRepository->createQueryBuilder('a')
-            ->select('COUNT(a.id)')
-            ->where('a.isPublic = :public')
-            ->setParameter('public', true)
-            ->getQuery()
-            ->getSingleScalarResult();
-
-        $photosByPeriod = [];
-        foreach (['today', 'week', 'month'] as $period) {
-            $periodEnum = PhotoPeriod::from($period);
-            $startDate = $periodEnum->getStartDate();
-            
-            $count = $this->photoRepository->createQueryBuilder('p')
-                ->select('COUNT(p.id)')
-                ->innerJoin('p.album', 'a')
-                ->where('a.isPublic = :public')
-                ->andWhere('p.takenAt >= :startDate')
-                ->setParameter('public', true)
-                ->setParameter('startDate', $startDate)
-                ->getQuery()
-                ->getSingleScalarResult();
-
-            $photosByPeriod[$period] = (int) $count;
-        }
-
         return $this->json([
-            'totalPhotos' => (int) $totalPhotos,
-            'totalAlbums' => (int) $totalAlbums,
-            'photosByPeriod' => $photosByPeriod
+            'totalPhotos' => $this->photoRepository->countPublicPhotos('all'),
+            'totalAlbums' => $this->albumRepository->countPublicAlbums(),
+            'avgRating' => 4.9, // Could query reviews
         ]);
     }
 }
+

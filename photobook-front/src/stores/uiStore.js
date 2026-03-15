@@ -1,139 +1,142 @@
 import { create } from 'zustand';
 
 /**
- * Store pour l'état de l'interface utilisateur
+ * Générateur d'ID unique pour les notifications.
+ * CORRECTION 6 : Date.now() seul n'est pas unique si deux notifications
+ * sont créées dans la même milliseconde (ex: Promise.all qui échoue sur
+ * plusieurs requêtes simultanées) → les IDs étaient identiques et Zustand
+ * écrasait silencieusement la première notification.
+ * Solution : compteur auto-incrémenté combiné à Date.now().
  */
+let _notifCounter = 0;
+const uniqueId = () => `${Date.now()}-${++_notifCounter}`;
+
 const useUIStore = create((set) => ({
-  // Sidebar admin
+  // ── Sidebar admin ─────────────────────────────────────────────────────────
   sidebarOpen: true,
-  
-  // Modales
+
+  // ── Modales ───────────────────────────────────────────────────────────────
   modals: {
-    login: false,
-    register: false,
+    login:          false,
+    register:       false,
     bookingConfirm: false,
-    serviceForm: false,
-    employeeForm: false,
-    reviewSubmit: false,
+    serviceForm:    false,
+    employeeForm:   false,
+    reviewSubmit:   false,
   },
 
-  // Notifications
+  // ── Notifications ─────────────────────────────────────────────────────────
   notifications: [],
 
-  // Lightbox galerie
+  // ── Lightbox galerie ──────────────────────────────────────────────────────
   lightbox: {
-    isOpen: false,
+    isOpen:       false,
     currentIndex: 0,
-    images: [],
+    images:       [],
   },
 
-  /**
-   * Basculer la sidebar
-   */
-  toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
+  // ─────────────────────────────────────────────────────────────────────────
+  // Sidebar
+  // ─────────────────────────────────────────────────────────────────────────
+  toggleSidebar: () =>
+    set((state) => ({ sidebarOpen: !state.sidebarOpen })),
 
-  /**
-   * Ouvrir/Fermer une modale
-   */
-  openModal: (modalName) => 
+  // ─────────────────────────────────────────────────────────────────────────
+  // Modales
+  // ─────────────────────────────────────────────────────────────────────────
+  openModal: (modalName) =>
     set((state) => ({
-      modals: { ...state.modals, [modalName]: true }
+      modals: { ...state.modals, [modalName]: true },
     })),
 
-  closeModal: (modalName) => 
+  closeModal: (modalName) =>
     set((state) => ({
-      modals: { ...state.modals, [modalName]: false }
+      modals: { ...state.modals, [modalName]: false },
     })),
 
-  /**
-   * Ajouter une notification
-   */
-  addNotification: (notification) => 
+  // ─────────────────────────────────────────────────────────────────────────
+  // Notifications
+  // ─────────────────────────────────────────────────────────────────────────
+  addNotification: (notification) =>
     set((state) => ({
       notifications: [
         ...state.notifications,
         {
-          id: Date.now(),
-          type: 'info', // success, error, warning, info
+          id:       uniqueId(), // CORRECTION 6 appliquée ici aussi
+          type:     'info',
           duration: 5000,
           ...notification,
-        }
-      ]
+        },
+      ],
     })),
 
-  /**
-   * Supprimer une notification
-   */
-  removeNotification: (id) => 
+  removeNotification: (id) =>
     set((state) => ({
-      notifications: state.notifications.filter(n => n.id !== id)
+      notifications: state.notifications.filter((n) => n.id !== id),
     })),
 
   /**
-   * Ouvrir la lightbox
+   * CORRECTION 7 : clearAllNotifications manquait.
+   * Utile au logout, changement de page, ou après une action globale
+   * pour éviter des notifications orphelines qui restent affichées.
    */
-  openLightbox: (images, currentIndex = 0) => 
+  clearAllNotifications: () => set({ notifications: [] }),
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Lightbox
+  // ─────────────────────────────────────────────────────────────────────────
+  openLightbox: (images, currentIndex = 0) =>
     set({
-      lightbox: {
-        isOpen: true,
-        images,
-        currentIndex,
-      }
+      lightbox: { isOpen: true, images, currentIndex },
     }),
 
-  /**
-   * Fermer la lightbox
-   */
-  closeLightbox: () => 
+  closeLightbox: () =>
     set({
-      lightbox: {
-        isOpen: false,
-        images: [],
-        currentIndex: 0,
-      }
+      lightbox: { isOpen: false, images: [], currentIndex: 0 },
     }),
 
-  /**
-   * Naviguer dans la lightbox
-   */
-  setLightboxIndex: (index) => 
+  setLightboxIndex: (index) =>
     set((state) => ({
-      lightbox: {
-        ...state.lightbox,
-        currentIndex: index,
-      }
+      lightbox: { ...state.lightbox, currentIndex: index },
     })),
 
-  /**
-   * Afficher une notification de succès
-   */
-  showSuccess: (message) => 
+  // ─────────────────────────────────────────────────────────────────────────
+  // Raccourcis notifications typées
+  // ─────────────────────────────────────────────────────────────────────────
+  showSuccess: (message) =>
     set((state) => ({
       notifications: [
         ...state.notifications,
-        {
-          id: Date.now(),
-          type: 'success',
-          message,
-          duration: 5000,
-        }
-      ]
+        { id: uniqueId(), type: 'success', message, duration: 5000 },
+      ],
     })),
 
-  /**
-   * Afficher une notification d'erreur
-   */
-  showError: (message) => 
+  showError: (message) =>
     set((state) => ({
       notifications: [
         ...state.notifications,
-        {
-          id: Date.now(),
-          type: 'error',
-          message,
-          duration: 7000,
-        }
-      ]
+        { id: uniqueId(), type: 'error', message, duration: 7000 },
+      ],
+    })),
+
+  /**
+   * CORRECTION 7 bis : ajout de showWarning et showInfo pour compléter
+   * la palette (le store définissait 4 types mais seulement 2 helpers).
+   */
+  showWarning: (message) =>
+    set((state) => ({
+      notifications: [
+        ...state.notifications,
+        { id: uniqueId(), type: 'warning', message, duration: 6000 },
+      ],
+    })),
+
+  showInfo: (message) =>
+    set((state) => ({
+      notifications: [
+        ...state.notifications,
+        { id: uniqueId(), type: 'info', message, duration: 5000 },
+      ],
     })),
 }));
 

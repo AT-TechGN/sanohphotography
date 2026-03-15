@@ -58,17 +58,6 @@ const PhotoUploader = ({ onUploadSuccess }) => {
         const formData = new FormData();
         formData.append('photo', files[i]);
 
-        // TODO: Remplacer par votre endpoint d'upload
-        // await api.post('/photos/upload', formData, {
-        //   headers: { 'Content-Type': 'multipart/form-data' },
-        //   onUploadProgress: (progressEvent) => {
-        //     const percentCompleted = Math.round(
-        //       ((i + progressEvent.loaded / progressEvent.total) / files.length) * 100
-        //     );
-        //     setProgress(percentCompleted);
-        //   },
-        // });
-
         // Simulation
         await new Promise((resolve) => setTimeout(resolve, 500));
         setProgress(Math.round(((i + 1) / files.length) * 100));

@@ -7,11 +7,18 @@ const reviewService = {
   /**
    * Obtenir les avis approuvés (public)
    */
-  async getApproved(page = 1, limit = 10) {
+async getApproved(page = 1, limit = 10) {
     const response = await api.get('/reviews/approved', {
       params: { page, limit },
     });
     return response.data;
+  },
+
+  /**
+   * Get featured/approved reviews for homepage
+   */
+  async getHomepageReviews(limit = 3) {
+    return this.getApproved(1, limit);
   },
 
   /**

@@ -1,14 +1,14 @@
 import axios from 'axios';
 
 // Configuration de l'API
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost/photobook-api/public/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
 
 // Instance Axios avec configuration de base
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
-    'Accept': 'application/json',
+    'Accept': 'application/ld+json, application/json, */*',
   },
 });
 

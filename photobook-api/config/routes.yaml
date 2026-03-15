@@ -9,3 +9,14 @@
 
 controllers:
     resource: routing.controllers
+
+api_gallery:
+    resource: routes/api_gallery.yaml
+    prefix: /api
+
+admin_photo:
+    resource: routes/admin_photo.yaml
+
+admin_album:
+    resource: routes/admin_album.yaml
+

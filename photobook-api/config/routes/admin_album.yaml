@@ -1,0 +1,5 @@
+admin_album:
+    resource: ../../src/Controller/Api/AdminAlbumController.php
+    prefix: /api
+    trailing_slash_on_root: false
+

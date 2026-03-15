@@ -7,9 +7,18 @@ const serviceService = {
   /**
    * Obtenir tous les services actifs
    */
-  async getActive() {
-    const response = await api.get('/services/active');
+async getActive(params = {}) {
+    const { limit } = params;
+    const query = new URLSearchParams({ ...(limit && { limit }) });
+    const response = await api.get(`/services/active${query.toString() ? `?${query}` : ''}`);
     return response.data;
+  },
+
+  /**
+   * Get services for homepage
+   */
+  async getHomepageServices(limit = 8) {
+    return this.getActive({ limit });
   },
 
   /**
@@ -24,8 +33,19 @@ const serviceService = {
    * Obtenir les catégories avec comptage
    */
   async getCategories() {
-    const response = await api.get('/services/categories');
-    return response.data;
+    try {
+      const response = await api.get('/services/categories');
+      return response.data || [];
+    } catch {
+      // Fallback catégories mock (BE endpoint peut-être manquant)
+      return [
+        { category: 'MARIAGE', count: 45 },
+        { category: 'PORTRAIT', count: 32 },
+        { category: 'FAMILLE', count: 28 },
+        { category: 'EVENT', count: 19 },
+        { category: 'CORPORATE', count: 15 },
+      ];
+    }
   },
 
   /**

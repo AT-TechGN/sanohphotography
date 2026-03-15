@@ -6,6 +6,9 @@ import api from './api';
 const photoService = {
   /**
    * Obtenir tous les albums
+   * CORRECTION 1 : routes getAlbums et getAlbum avaient un préfixe /api/ en trop
+   * ("/api/admin/albums") incohérent avec toutes les autres routes ("/admin/...").
+   * Uniformisé en "/admin/albums" comme le reste du service.
    */
   async getAlbums(params = {}) {
     const { category, isPublic } = params;
@@ -13,13 +16,13 @@ const photoService = {
       ...(category && { category }),
       ...(isPublic !== undefined && { isPublic }),
     });
-
     const response = await api.get(`/admin/albums?${queryParams}`);
     return response.data;
   },
 
   /**
    * Obtenir un album par ID
+   * CORRECTION 2 : même bug /api/ en trop → "/admin/albums/:id"
    */
   async getAlbum(id) {
     const response = await api.get(`/admin/albums/${id}`);
@@ -58,7 +61,6 @@ const photoService = {
     const queryParams = new URLSearchParams({
       ...(albumId && { albumId }),
     });
-
     const response = await api.get(`/admin/photos?${queryParams}`);
     return response.data;
   },
@@ -77,15 +79,11 @@ const photoService = {
   async uploadPhotos(albumId, files) {
     const formData = new FormData();
     formData.append('albumId', albumId);
-    
     files.forEach((file) => {
       formData.append('files', file);
     });
-
     const response = await api.post('/admin/photos', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
+      headers: { 'Content-Type': 'multipart/form-data' },
     });
     return response.data;
   },
@@ -140,4 +138,3 @@ const photoService = {
 };
 
 export default photoService;
-
