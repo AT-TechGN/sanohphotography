@@ -114,7 +114,6 @@ const AdminDashboard = () => {
 
   if (error) {
     return (
-      {/* CORRECTION 1 : fermeture du div wrapper manquante dans le bloc error */}
       <div className="p-4 lg:p-8">
         <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl p-6 text-center">
           <ExclamationTriangleIcon className="w-16 h-16 text-red-500 mx-auto mb-4" />
