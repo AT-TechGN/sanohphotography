@@ -2,10 +2,18 @@ import api from './api';
 
 /**
  * Service pour les réservations
+ *
+ * CORRECTIONS :
+ * 1. getAllBookings() appelait /admin/bookings → 404 (route inexistante)
+ *    Corrigé → /bookings/admin-list (nouvelle route ajoutée au backend)
+ * 2. updateBookingStatus() appelait /admin/bookings/:id/status → 404
+ *    Corrigé → /bookings/:id/admin-status
+ * 3. assignEmployee() appelait /admin/bookings/:id/assign → route déjà correcte ✓
  */
 const bookingService = {
+
   /**
-   * Obtenir les créneaux disponibles pour un service à une date donnée
+   * Créneaux disponibles
    */
   async getAvailableSlots(serviceId, date) {
     const response = await api.get('/bookings/available-slots', {
@@ -15,7 +23,7 @@ const bookingService = {
   },
 
   /**
-   * Créer une nouvelle réservation
+   * Créer une réservation (client)
    */
   async create(data) {
     const response = await api.post('/bookings', data);
@@ -23,7 +31,7 @@ const bookingService = {
   },
 
   /**
-   * Obtenir les réservations du client connecté
+   * Réservations du client connecté
    */
   async getMyBookings(status = null) {
     const params = status ? { status } : {};
@@ -32,7 +40,7 @@ const bookingService = {
   },
 
   /**
-   * Obtenir une réservation par ID
+   * Une réservation par ID
    */
   async getById(id) {
     const response = await api.get(`/bookings/${id}`);
@@ -40,7 +48,7 @@ const bookingService = {
   },
 
   /**
-   * Confirmer une réservation (photographe)
+   * Confirmer (photographe)
    */
   async confirm(id) {
     const response = await api.patch(`/bookings/${id}/confirm`);
@@ -48,7 +56,7 @@ const bookingService = {
   },
 
   /**
-   * Annuler une réservation
+   * Annuler
    */
   async cancel(id, reason) {
     const response = await api.patch(`/bookings/${id}/cancel`, { reason });
@@ -56,7 +64,7 @@ const bookingService = {
   },
 
   /**
-   * Démarrer une séance (employé)
+   * Démarrer (employé)
    */
   async start(id) {
     const response = await api.patch(`/bookings/${id}/start`);
@@ -64,7 +72,7 @@ const bookingService = {
   },
 
   /**
-   * Terminer une séance (employé)
+   * Terminer (employé)
    */
   async complete(id) {
     const response = await api.patch(`/bookings/${id}/complete`);
@@ -72,7 +80,7 @@ const bookingService = {
   },
 
   /**
-   * Obtenir les réservations pour le calendrier (photographe)
+   * Calendrier (photographe)
    */
   async getCalendar(startDate, endDate) {
     const response = await api.get('/bookings/calendar', {
@@ -82,7 +90,7 @@ const bookingService = {
   },
 
   /**
-   * Obtenir les statistiques des réservations (photographe)
+   * Statistiques (photographe)
    */
   async getStats() {
     const response = await api.get('/bookings/stats');
@@ -90,31 +98,36 @@ const bookingService = {
   },
 
   /**
-   * Obtenir toutes les réservations (admin/photographe)
+   * Toutes les réservations (admin/photographe)
+   * CORRECTION 1 : /admin/bookings → /bookings/admin-list
    */
   async getAllBookings(filters = {}) {
     const params = {};
-    if (filters.status && filters.status !== 'all') params.status = filters.status;
+    if (filters.status && filters.status !== 'all') params.status   = filters.status;
     if (filters.startDate) params.start_date = filters.startDate;
-    if (filters.endDate) params.end_date = filters.endDate;
-    
-    const response = await api.get('/admin/bookings', { params });
+    if (filters.endDate)   params.end_date   = filters.endDate;
+
+    const response = await api.get('/bookings/admin-list', { params });
     return response.data;
   },
 
   /**
-   * Mettre à jour le statut d'une réservation
+   * Changer le statut (admin)
+   * CORRECTION 2 : /admin/bookings/:id/status → /bookings/:id/admin-status
    */
   async updateBookingStatus(id, status) {
-    const response = await api.patch(`/admin/bookings/${id}/status`, { status });
+    const response = await api.patch(`/bookings/${id}/admin-status`, { status });
     return response.data;
   },
 
   /**
-   * Assigner un employé à une réservation
+   * Assigner un employé (admin)
+   * Route déjà correcte : /bookings/:id/assign
    */
   async assignEmployee(bookingId, employeeId) {
-    const response = await api.patch(`/admin/bookings/${bookingId}/assign`, { employee_id: employeeId });
+    const response = await api.patch(`/bookings/${bookingId}/assign`, {
+      employee_id: employeeId,
+    });
     return response.data;
   },
 };

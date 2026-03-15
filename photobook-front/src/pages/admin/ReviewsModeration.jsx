@@ -2,12 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import reviewService from '../../services/reviewService';
+import useUIStore from '../../stores/uiStore';
 import {
   StarIcon,
   CheckCircleIcon,
   XCircleIcon,
   ClockIcon,
-  UserCircleIcon,
   CalendarIcon,
   FunnelIcon,
   ChatBubbleLeftIcon,
@@ -15,10 +15,12 @@ import {
 import { StarIcon as StarSolidIcon } from '@heroicons/react/24/solid';
 
 const ReviewsModeration = () => {
-  const [reviews, setReviews] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState('pending'); // pending, approved, rejected, all
-  const [stats, setStats] = useState({ pending: 0, approved: 0, rejected: 0, total: 0 });
+  const [reviews,  setReviews]  = useState([]);
+  const [loading,  setLoading]  = useState(true);
+  const [filter,   setFilter]   = useState('pending');
+  const [stats,    setStats]    = useState({ pending: 0, approved: 0, rejected: 0, total: 0 });
+  const { showSuccess, showError } = useUIStore();
+
   useEffect(() => {
     loadReviews();
   }, [filter]);
@@ -26,65 +28,97 @@ const ReviewsModeration = () => {
   const loadReviews = async () => {
     try {
       setLoading(true);
+
+      // BUG CORRIGÉ : reviewService n'a pas getPendingReviews() ni getAllReviews()
+      // Les vraies méthodes sont getPending() et getApproved()
       let data;
       if (filter === 'pending') {
-        data = await reviewService.getPendingReviews();
+        data = await reviewService.getPending();
+      } else if (filter === 'approved') {
+        const res = await reviewService.getApproved(1, 50);
+        // getApproved retourne { data: [...] } ou directement un tableau
+        data = Array.isArray(res) ? res : (res?.data ?? []);
       } else if (filter === 'all') {
-        data = await reviewService.getAllReviews();
+        // Combiner pending + approved
+        const [pendingRes, approvedRes] = await Promise.all([
+          reviewService.getPending(),
+          reviewService.getApproved(1, 100),
+        ]);
+        const approved = Array.isArray(approvedRes) ? approvedRes : (approvedRes?.data ?? []);
+        data = [...(Array.isArray(pendingRes) ? pendingRes : []), ...approved];
       } else {
-        data = await reviewService.getAllReviews({ status: filter });
+        // filter === 'rejected' — pas d'endpoint dédié, on retourne []
+        data = [];
       }
+
       setReviews(Array.isArray(data) ? data : []);
-      
-      // Calculer les stats
-      const allData = await reviewService.getAllReviews();
-      const allReviews = Array.isArray(allData) ? allData : [];
+
+      // Recalculer les stats avec ce qu'on a
+      const [pendingData, approvedData] = await Promise.all([
+        reviewService.getPending(),
+        reviewService.getApproved(1, 100),
+      ]);
+      const pendingList  = Array.isArray(pendingData) ? pendingData : [];
+      const approvedList = Array.isArray(approvedData) ? approvedData : (approvedData?.data ?? []);
       setStats({
-        pending: allReviews.filter(r => r.status === 'pending').length,
-        approved: allReviews.filter(r => r.status === 'approved').length,
-        rejected: allReviews.filter(r => r.status === 'rejected').length,
-        total: allReviews.length,
+        pending:  pendingList.length,
+        approved: approvedList.length,
+        rejected: 0,
+        total:    pendingList.length + approvedList.length,
       });
-    } catch (error) {
-      console.error('Erreur chargement avis:', error);
+    } catch (err) {
+      console.error('Erreur chargement avis:', err);
+      showError('Erreur chargement des avis');
       setReviews([]);
     } finally {
       setLoading(false);
     }
   };
 
+  // BUG CORRIGÉ : approveReview → approve, rejectReview → reject
   const handleApprove = async (id) => {
     try {
-      await reviewService.approveReview(id);
+      await reviewService.approve(id);
+      showSuccess('Avis approuvé');
       loadReviews();
-    } catch (error) {
-      console.error('Erreur approbation:', error);
+    } catch (err) {
+      console.error('Erreur approbation:', err);
+      showError('Erreur lors de l\'approbation');
     }
   };
 
   const handleReject = async (id) => {
     try {
-      await reviewService.rejectReview(id);
+      await reviewService.reject(id);
+      showSuccess('Avis rejeté');
       loadReviews();
-    } catch (error) {
-      console.error('Erreur rejet:', error);
+    } catch (err) {
+      console.error('Erreur rejet:', err);
+      showError('Erreur lors du rejet');
     }
   };
 
-  const renderStars = (rating) => {
-    return (
-      <div className="flex items-center gap-1">
-        {[1, 2, 3, 4, 5].map((star) => (
-          <StarSolidIcon
-            key={star}
-            className={`w-5 h-5 ${
-              star <= rating ? 'text-yellow-400' : 'text-gray-300'
-            }`}
-          />
-        ))}
-      </div>
-    );
+  const handleToggleFeatured = async (id) => {
+    try {
+      await reviewService.toggleFeatured(id);
+      showSuccess('Statut vedette modifié');
+      loadReviews();
+    } catch (err) {
+      console.error('Erreur toggle featured:', err);
+      showError('Erreur');
+    }
   };
+
+  const renderStars = (rating) => (
+    <div className="flex items-center gap-1">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <StarSolidIcon
+          key={star}
+          className={`w-5 h-5 ${star <= rating ? 'text-yellow-400' : 'text-gray-300'}`}
+        />
+      ))}
+    </div>
+  );
 
   const getStatusBadge = (status) => {
     const badges = {
@@ -107,13 +141,10 @@ const ReviewsModeration = () => {
         icon: <XCircleIcon className="w-4 h-4" />,
       },
     };
-
     const badge = badges[status] || badges.pending;
-
     return (
       <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold ${badge.bg} ${badge.text}`}>
-        {badge.icon}
-        {badge.label}
+        {badge.icon}{badge.label}
       </span>
     );
   };
@@ -123,13 +154,24 @@ const ReviewsModeration = () => {
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Modération des Avis
-          </h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-1">
-            {reviews.length} avis trouvé(s)
-          </p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Modération des Avis</h1>
+          <p className="text-gray-500 dark:text-gray-400 mt-1">{reviews.length} avis trouvé(s)</p>
         </div>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {[
+          { label: 'En attente', value: stats.pending,  color: 'from-yellow-500 to-yellow-600' },
+          { label: 'Approuvés',  value: stats.approved, color: 'from-green-500 to-green-600'  },
+          { label: 'Rejetés',    value: stats.rejected, color: 'from-red-500 to-red-600'      },
+          { label: 'Total',      value: stats.total,    color: 'from-purple-500 to-purple-600' },
+        ].map(({ label, value, color }) => (
+          <div key={label} className={`bg-gradient-to-br ${color} rounded-2xl p-5 text-white shadow-lg`}>
+            <p className="text-white/80 text-sm">{label}</p>
+            <p className="text-3xl font-bold">{value}</p>
+          </div>
+        ))}
       </div>
 
       {/* Filters */}
@@ -138,13 +180,11 @@ const ReviewsModeration = () => {
           <FunnelIcon className="w-5 h-5 text-purple-600" />
           <h3 className="font-semibold text-gray-900 dark:text-white">Filtres</h3>
         </div>
-
         <div className="flex flex-wrap gap-2">
           {[
-            { value: 'pending', label: 'En attente', count: stats.pending },
-            { value: 'approved', label: 'Approuvés', count: stats.approved },
-            { value: 'rejected', label: 'Rejetés', count: stats.rejected },
-            { value: 'all', label: 'Tous', count: stats.total },
+            { value: 'pending',  label: 'En attente', count: stats.pending  },
+            { value: 'approved', label: 'Approuvés',  count: stats.approved },
+            { value: 'all',      label: 'Tous',       count: stats.total    },
           ].map((item) => (
             <button
               key={item.value}
@@ -165,7 +205,7 @@ const ReviewsModeration = () => {
       <div className="space-y-4">
         {loading ? (
           <div className="bg-white dark:bg-gray-800 rounded-2xl p-12 text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto" />
             <p className="mt-4 text-gray-500">Chargement...</p>
           </div>
         ) : reviews.length === 0 ? (
@@ -175,12 +215,9 @@ const ReviewsModeration = () => {
           </div>
         ) : (
           reviews.map((review) => (
-            <div
-              key={review.id}
-              className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow"
-            >
+            <div key={review.id} className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow">
               <div className="flex flex-col lg:flex-row lg:items-start gap-6">
-                {/* Left: Client Info */}
+                {/* Client Info */}
                 <div className="flex items-start gap-4 lg:w-1/3">
                   <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white font-bold flex-shrink-0">
                     {review.client?.firstName?.[0]}{review.client?.lastName?.[0]}
@@ -189,9 +226,7 @@ const ReviewsModeration = () => {
                     <h3 className="font-semibold text-gray-900 dark:text-white">
                       {review.client?.firstName} {review.client?.lastName}
                     </h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
-                      {review.client?.email}
-                    </p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{review.client?.email}</p>
                     <div className="flex items-center gap-2 mt-2">
                       <CalendarIcon className="w-4 h-4 text-gray-400" />
                       <span className="text-xs text-gray-500 dark:text-gray-400">
@@ -201,28 +236,40 @@ const ReviewsModeration = () => {
                   </div>
                 </div>
 
-                {/* Center: Review Content */}
-                <div className="flex-1 lg:w-1/2">
+                {/* Review Content */}
+                <div className="flex-1">
                   <div className="flex items-center justify-between mb-3">
                     {renderStars(review.rating)}
                     {getStatusBadge(review.status)}
                   </div>
-                  
                   <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                    {review.comment}
+                    {review.comment || review.content}
                   </p>
-
                   {review.service && (
                     <div className="mt-3 inline-flex items-center gap-2 px-3 py-1 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
                       <span className="text-sm text-purple-700 dark:text-purple-400">
-                        Service: {review.service.name}
+                        Service: {review.service?.name || review.service}
                       </span>
                     </div>
                   )}
+                  {/* Vedette toggle */}
+                  {review.status === 'approved' && (
+                    <button
+                      onClick={() => handleToggleFeatured(review.id)}
+                      className={`mt-3 flex items-center gap-1 px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
+                        review.isFeatured
+                          ? 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200'
+                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      }`}
+                    >
+                      <StarIcon className="w-4 h-4" />
+                      {review.isFeatured ? 'Retirer de la vedette' : 'Mettre en vedette'}
+                    </button>
+                  )}
                 </div>
 
-                {/* Right: Actions */}
-                <div className="flex lg:flex-col gap-2 lg:w-auto">
+                {/* Actions */}
+                <div className="flex lg:flex-col gap-2">
                   {review.status === 'pending' && (
                     <>
                       <button
@@ -248,15 +295,6 @@ const ReviewsModeration = () => {
                     >
                       <XCircleIcon className="w-5 h-5" />
                       <span className="hidden sm:inline">Retirer</span>
-                    </button>
-                  )}
-                  {review.status === 'rejected' && (
-                    <button
-                      onClick={() => handleApprove(review.id)}
-                      className="flex items-center justify-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium transition-colors"
-                    >
-                      <CheckCircleIcon className="w-5 h-5" />
-                      <span className="hidden sm:inline">Réactiver</span>
                     </button>
                   )}
                 </div>

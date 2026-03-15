@@ -4,16 +4,23 @@ import { useEffect, useState } from 'react';
 import invoiceService from '../../services/invoiceService';
 import useUIStore from '../../stores/uiStore';
 import Loading from '../../components/common/Loading';
+import {
+  DocumentTextIcon, ArrowDownTrayIcon, CheckCircleIcon,
+  XCircleIcon, FunnelIcon, CurrencyDollarIcon,
+  ClockIcon, ExclamationCircleIcon,
+} from '@heroicons/react/24/outline';
 
 const InvoicesManagement = () => {
-  const [invoices, setInvoices] = useState([]);
-  const [stats, setStats] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [filterStatus, setFilterStatus] = useState('all');
+  const [invoices,      setInvoices]      = useState([]);
+  const [stats,         setStats]         = useState(null);
+  const [loading,       setLoading]       = useState(true);
+  const [filterStatus,  setFilterStatus]  = useState('all');
+  const [payModal,      setPayModal]      = useState(null); // { id } | null
+  const [payMethod,     setPayMethod]     = useState('Mobile Money');
+  const [exportDates,   setExportDates]   = useState({ start: '', end: '' });
   const { showSuccess, showError } = useUIStore();
-  useEffect(() => {
-    loadData();
-  }, []);
+
+  useEffect(() => { loadData(); }, []);
 
   const loadData = async () => {
     try {
@@ -22,9 +29,10 @@ const InvoicesManagement = () => {
         invoiceService.getAll(),
         invoiceService.getStats(),
       ]);
-      setInvoices(invoicesData);
+      setInvoices(invoicesData ?? []);
       setStats(statsData);
-    } catch {
+    } catch (err) {
+      console.error(err);
       showError('Erreur chargement factures');
     } finally {
       setLoading(false);
@@ -34,248 +42,228 @@ const InvoicesManagement = () => {
   const handleDownloadPdf = async (id, invoiceNumber) => {
     try {
       const blob = await invoiceService.downloadPdf(id);
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
+      const url  = window.URL.createObjectURL(blob);
+      const a    = document.createElement('a');
+      a.href     = url;
       a.download = `facture-${invoiceNumber}.pdf`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
       showSuccess('Facture téléchargée');
-    } catch {
+    } catch (err) {
+      console.error(err);
       showError('Erreur téléchargement PDF');
     }
   };
 
-  const handleMarkPaid = async (id) => {
-    const method = prompt('Méthode de paiement (Mobile Money, Espèces, Virement):');
-    if (!method) return;
-
+  // BUG CORRIGÉ : prompt() remplacé par une modale inline
+  const handleMarkPaid = async () => {
+    if (!payModal) return;
     try {
-      await invoiceService.markPaid(id, method);
+      await invoiceService.markPaid(payModal.id, payMethod);
       showSuccess('Facture marquée comme payée');
+      setPayModal(null);
+      setPayMethod('Mobile Money');
       loadData();
-    } catch {
+    } catch (err) {
+      console.error(err);
       showError('Erreur');
     }
   };
 
   const handleCancel = async (id) => {
-    if (!confirm('Annuler cette facture ?')) return;
-
+    // BUG CORRIGÉ : confirm() → window.confirm()
+    if (!window.confirm('Annuler cette facture ?')) return;
     try {
       await invoiceService.cancel(id);
       showSuccess('Facture annulée');
       loadData();
-    } catch {
+    } catch (err) {
+      console.error(err);
       showError('Erreur annulation');
     }
   };
 
   const handleExportCsv = async () => {
-    const startDate = prompt('Date début (YYYY-MM-DD) ou vide pour toutes:');
-    const endDate = prompt('Date fin (YYYY-MM-DD) ou vide pour toutes:');
-
     try {
-      const blob = await invoiceService.exportCsv(startDate || null, endDate || null);
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
+      const blob = await invoiceService.exportCsv(
+        exportDates.start || null,
+        exportDates.end   || null,
+      );
+      const url  = window.URL.createObjectURL(blob);
+      const a    = document.createElement('a');
+      a.href     = url;
       a.download = `factures-export-${new Date().toISOString().split('T')[0]}.csv`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
       showSuccess('Export CSV téléchargé');
-    } catch {
+    } catch (err) {
+      console.error(err);
       showError('Erreur export CSV');
     }
   };
 
-  const formatPrice = (price) => {
-    return new Intl.NumberFormat('fr-GN', {
-      style: 'currency',
-      currency: 'GNF',
-      minimumFractionDigits: 0,
-    }).format(price);
-  };
+  const formatPrice = (price) =>
+    new Intl.NumberFormat('fr-GN', { style: 'currency', currency: 'GNF', minimumFractionDigits: 0 }).format(price);
 
-  const getStatusColor = (status) => {
-    const colors = {
-      pending: 'bg-yellow-100 text-yellow-800',
-      paid: 'bg-green-100 text-green-800',
-      cancelled: 'bg-red-100 text-red-800',
+  const getStatusBadge = (status) => {
+    const map = {
+      pending:   { color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400', label: 'En attente' },
+      paid:      { color: 'bg-green-100  text-green-800  dark:bg-green-900/30  dark:text-green-400',  label: 'Payée'     },
+      cancelled: { color: 'bg-red-100    text-red-800    dark:bg-red-900/30    dark:text-red-400',    label: 'Annulée'   },
     };
-    return colors[status] || 'bg-gray-100 text-gray-800';
+    const { color, label } = map[status] || map.pending;
+    return <span className={`px-3 py-1 rounded-full text-xs font-semibold ${color}`}>{label}</span>;
   };
 
-  const getStatusLabel = (status) => {
-    const labels = {
-      pending: 'En attente',
-      paid: 'Payée',
-      cancelled: 'Annulée',
-    };
-    return labels[status] || status;
-  };
+  const filteredInvoices = filterStatus === 'all'
+    ? invoices
+    : invoices.filter((inv) => inv.status === filterStatus);
 
-  const filteredInvoices =
-    filterStatus === 'all'
-      ? invoices
-      : invoices.filter((inv) => inv.status === filterStatus);
-
-  if (loading) return <Loading fullScreen />;
+  if (loading) return <Loading fullScreen text="Chargement des factures..." />;
 
   return (
-    <div className="p-8">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Gestion des Factures</h1>
-        <button
-          onClick={handleExportCsv}
-          className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700"
-        >
-          📥 Export CSV
-        </button>
+    <div className="p-4 lg:p-8 space-y-6">
+      {/* Header */}
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Gestion des Factures</h1>
+          <p className="text-gray-500 dark:text-gray-400 mt-1">{filteredInvoices.length} facture(s)</p>
+        </div>
+        <div className="flex items-center gap-3 flex-wrap">
+          <input type="date" value={exportDates.start} onChange={(e) => setExportDates(p => ({ ...p, start: e.target.value }))} className="px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-sm" />
+          <input type="date" value={exportDates.end}   onChange={(e) => setExportDates(p => ({ ...p, end:   e.target.value }))} className="px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-sm" />
+          <button onClick={handleExportCsv} className="inline-flex items-center gap-2 px-5 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl font-medium hover:shadow-lg transition-all">
+            <ArrowDownTrayIcon className="w-5 h-5" /> Export CSV
+          </button>
+        </div>
       </div>
 
-      {/* Statistiques */}
+      {/* Stats */}
       {stats && (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <p className="text-gray-600 text-sm mb-2">Revenus du mois</p>
-            <p className="text-2xl font-bold text-green-600">
-              {formatPrice(stats.monthRevenue)}
-            </p>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <p className="text-gray-600 text-sm mb-2">Montant en attente</p>
-            <p className="text-2xl font-bold text-yellow-600">
-              {formatPrice(stats.pendingAmount)}
-            </p>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <p className="text-gray-600 text-sm mb-2">Factures en retard</p>
-            <p className="text-2xl font-bold text-red-600">{stats.overdueInvoices}</p>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <p className="text-gray-600 text-sm mb-2">Total factures</p>
-            <p className="text-2xl font-bold text-blue-600">
-              {Object.values(stats.statusCounts).reduce((a, b) => a + b, 0)}
-            </p>
-          </div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {[
+            { label: 'Revenus du mois',    value: formatPrice(stats.monthRevenue),  Icon: CurrencyDollarIcon,   color: 'from-green-500 to-green-600'   },
+            { label: 'En attente',         value: formatPrice(stats.pendingAmount), Icon: ClockIcon,            color: 'from-yellow-500 to-yellow-600' },
+            { label: 'Factures en retard', value: stats.overdueInvoices,            Icon: ExclamationCircleIcon,color: 'from-red-500 to-red-600'       },
+            { label: 'Total factures',     value: Object.values(stats.statusCounts ?? {}).reduce((a, b) => a + b, 0), Icon: DocumentTextIcon, color: 'from-purple-500 to-purple-600' },
+          ].map(({ label, value, Icon, color }) => (
+            <div key={label} className={`bg-gradient-to-br ${color} rounded-2xl p-5 text-white shadow-lg`}>
+              <div className="flex items-center justify-between">
+                <div><p className="text-white/80 text-sm">{label}</p><p className="text-2xl font-bold mt-1">{value}</p></div>
+                <Icon className="w-10 h-10 text-white/30" />
+              </div>
+            </div>
+          ))}
         </div>
       )}
 
       {/* Filtres */}
-      <div className="flex gap-4 mb-6">
-        <button
-          onClick={() => setFilterStatus('all')}
-          className={`px-6 py-3 rounded-lg font-medium ${
-            filterStatus === 'all' ? 'bg-blue-600 text-white' : 'bg-gray-200'
-          }`}
-        >
-          Toutes ({invoices.length})
-        </button>
-        <button
-          onClick={() => setFilterStatus('pending')}
-          className={`px-6 py-3 rounded-lg font-medium ${
-            filterStatus === 'pending' ? 'bg-yellow-600 text-white' : 'bg-gray-200'
-          }`}
-        >
-          En attente ({invoices.filter((i) => i.status === 'pending').length})
-        </button>
-        <button
-          onClick={() => setFilterStatus('paid')}
-          className={`px-6 py-3 rounded-lg font-medium ${
-            filterStatus === 'paid' ? 'bg-green-600 text-white' : 'bg-gray-200'
-          }`}
-        >
-          Payées ({invoices.filter((i) => i.status === 'paid').length})
-        </button>
+      <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm">
+        <div className="flex items-center gap-2 mb-3">
+          <FunnelIcon className="w-5 h-5 text-purple-600" />
+          <span className="font-medium text-gray-900 dark:text-white">Filtrer :</span>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {[
+            { value: 'all',       label: `Toutes (${invoices.length})`                                  },
+            { value: 'pending',   label: `En attente (${invoices.filter(i => i.status === 'pending').length})`  },
+            { value: 'paid',      label: `Payées (${invoices.filter(i => i.status === 'paid').length})`          },
+            { value: 'cancelled', label: `Annulées (${invoices.filter(i => i.status === 'cancelled').length})`   },
+          ].map(({ value, label }) => (
+            <button
+              key={value}
+              onClick={() => setFilterStatus(value)}
+              className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                filterStatus === value
+                  ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg'
+                  : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* Liste des factures */}
-      <div className="bg-white rounded-lg shadow-lg">
-        <table className="w-full">
-          <thead className="bg-gray-50 border-b">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                N° Facture
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Client
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Service
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Montant
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Date
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Statut
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y">
-            {filteredInvoices.map((invoice) => (
-              <tr key={invoice.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 font-medium">{invoice.invoiceNumber}</td>
-                <td className="px-6 py-4">
-                  {invoice.booking?.client?.firstName} {invoice.booking?.client?.lastName}
-                </td>
-                <td className="px-6 py-4">{invoice.booking?.service?.name}</td>
-                <td className="px-6 py-4 font-bold">{formatPrice(invoice.amount)}</td>
-                <td className="px-6 py-4 text-sm">
-                  {new Date(invoice.issuedAt).toLocaleDateString('fr-FR')}
-                </td>
-                <td className="px-6 py-4">
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(invoice.status)}`}>
-                    {getStatusLabel(invoice.status)}
-                  </span>
-                </td>
-                <td className="px-6 py-4">
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => handleDownloadPdf(invoice.id, invoice.invoiceNumber)}
-                      className="text-blue-600 hover:text-blue-800"
-                      title="Télécharger PDF"
-                    >
-                      📄
-                    </button>
-                    {invoice.status === 'pending' && (
-                      <>
-                        <button
-                          onClick={() => handleMarkPaid(invoice.id)}
-                          className="text-green-600 hover:text-green-800"
-                          title="Marquer comme payée"
-                        >
-                          ✓
-                        </button>
-                        <button
-                          onClick={() => handleCancel(invoice.id)}
-                          className="text-red-600 hover:text-red-800"
-                          title="Annuler"
-                        >
-                          ✕
-                        </button>
-                      </>
-                    )}
-                  </div>
-                </td>
+      {/* Table */}
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
+              <tr>
+                {['N° Facture','Client','Service','Montant','Date','Statut','Actions'].map(h => (
+                  <th key={h} className="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase">{h}</th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+              {filteredInvoices.length === 0 ? (
+                <tr><td colSpan={7} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">Aucune facture</td></tr>
+              ) : filteredInvoices.map((invoice) => (
+                <tr key={invoice.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                  <td className="px-6 py-4 font-medium text-gray-900 dark:text-white">{invoice.invoiceNumber}</td>
+                  <td className="px-6 py-4 text-gray-700 dark:text-gray-300">
+                    {invoice.booking?.client?.firstName} {invoice.booking?.client?.lastName}
+                  </td>
+                  <td className="px-6 py-4 text-gray-700 dark:text-gray-300">{invoice.booking?.service?.name}</td>
+                  <td className="px-6 py-4 font-bold text-gray-900 dark:text-white">{formatPrice(invoice.amount)}</td>
+                  <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
+                    {new Date(invoice.issuedAt).toLocaleDateString('fr-FR')}
+                  </td>
+                  <td className="px-6 py-4">{getStatusBadge(invoice.status)}</td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-2">
+                      <button onClick={() => handleDownloadPdf(invoice.id, invoice.invoiceNumber)} className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors" title="Télécharger PDF">
+                        <ArrowDownTrayIcon className="w-5 h-5" />
+                      </button>
+                      {invoice.status === 'pending' && (
+                        <>
+                          <button onClick={() => setPayModal({ id: invoice.id })} className="p-2 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-colors" title="Marquer payée">
+                            <CheckCircleIcon className="w-5 h-5" />
+                          </button>
+                          <button onClick={() => handleCancel(invoice.id)} className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors" title="Annuler">
+                            <XCircleIcon className="w-5 h-5" />
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
+
+      {/* Modal paiement — remplace prompt() */}
+      {payModal && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-6 w-full max-w-sm">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Méthode de paiement</h3>
+            <select
+              value={payMethod}
+              onChange={(e) => setPayMethod(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 mb-4 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            >
+              {['Mobile Money','Espèces','Virement','Orange Money','MTN Money'].map(m => (
+                <option key={m} value={m}>{m}</option>
+              ))}
+            </select>
+            <div className="flex gap-3">
+              <button onClick={handleMarkPaid} className="flex-1 px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl font-medium hover:shadow-lg transition-all">
+                Confirmer
+              </button>
+              <button onClick={() => setPayModal(null)} className="flex-1 px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl font-medium hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
+                Annuler
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

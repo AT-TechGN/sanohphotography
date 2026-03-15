@@ -6,54 +6,56 @@ import useUIStore from '../../stores/uiStore';
 import { CameraIcon, EnvelopeIcon, LockClosedIcon, EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 
 const LoginForm = () => {
-  const navigate = useNavigate();
+  const navigate    = useNavigate();
   const { login, loading } = useAuthStore();
   const { showSuccess, showError } = useUIStore();
-  
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-  });
+
+  const [formData,     setFormData]     = useState({ email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
-  const [errors, setErrors] = useState({});
+  const [errors,       setErrors]       = useState({});
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
-    }
+    if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
   };
 
   const validate = () => {
     const newErrors = {};
-    
     if (!formData.email) {
       newErrors.email = 'L\'email est requis';
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = 'Email invalide';
     }
-    
     if (!formData.password) {
       newErrors.password = 'Le mot de passe est requis';
     } else if (formData.password.length < 6) {
       newErrors.password = 'Le mot de passe doit contenir au moins 6 caractères';
     }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
     if (!validate()) return;
 
     const result = await login(formData);
 
     if (result.success) {
       showSuccess('Connexion réussie !');
-      navigate('/dashboard');
+
+      // BUG CORRIGÉ : redirection fixe vers /dashboard causait un redirect loop
+      // pour les admins/photographes (protégés par ROLE_CLIENT uniquement).
+      // On lit les rôles depuis le store après login et on redirige correctement.
+      const { user } = useAuthStore.getState();
+      const roles = user?.roles ?? [];
+
+      if (roles.includes('ROLE_ADMIN') || roles.includes('ROLE_PHOTOGRAPHE') || roles.includes('ROLE_EMPLOYEE')) {
+        navigate('/admin');
+      } else {
+        navigate('/dashboard');
+      }
     } else {
       showError(result.error || 'Erreur de connexion');
     }
@@ -74,12 +76,8 @@ const LoginForm = () => {
               <CameraIcon className="w-7 h-7 text-white" />
             </div>
           </Link>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mt-4">
-            Bon retour parmi nous
-          </h2>
-          <p className="text-gray-500 dark:text-gray-400 mt-1">
-            Connectez-vous à votre compte
-          </p>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mt-4">Bon retour parmi nous</h2>
+          <p className="text-gray-500 dark:text-gray-400 mt-1">Connectez-vous à votre compte</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
@@ -93,20 +91,13 @@ const LoginForm = () => {
                 <EnvelopeIcon className="h-5 w-5 text-gray-400" />
               </div>
               <input
-                type="email"
-                id="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                className={`w-full pl-10 pr-4 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-gray-50 dark:bg-gray-700 ${
-                  errors.email ? 'border-red-500' : 'border-gray-200 dark:border-gray-600'
-                }`}
+                type="email" id="email" name="email"
+                value={formData.email} onChange={handleChange}
+                className={`w-full pl-10 pr-4 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-gray-50 dark:bg-gray-700 ${errors.email ? 'border-red-500' : 'border-gray-200 dark:border-gray-600'}`}
                 placeholder="votre@email.com"
               />
             </div>
-            {errors.email && (
-              <p className="mt-1 text-sm text-red-600">{errors.email}</p>
-            )}
+            {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
           </div>
 
           {/* Mot de passe */}
@@ -119,51 +110,33 @@ const LoginForm = () => {
                 <LockClosedIcon className="h-5 w-5 text-gray-400" />
               </div>
               <input
-                type={showPassword ? 'text' : 'password'}
-                id="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                className={`w-full pl-10 pr-12 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-gray-50 dark:bg-gray-700 ${
-                  errors.password ? 'border-red-500' : 'border-gray-200 dark:border-gray-600'
-                }`}
+                type={showPassword ? 'text' : 'password'} id="password" name="password"
+                value={formData.password} onChange={handleChange}
+                className={`w-full pl-10 pr-12 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-gray-50 dark:bg-gray-700 ${errors.password ? 'border-red-500' : 'border-gray-200 dark:border-gray-600'}`}
                 placeholder="••••••••"
               />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center"
-              >
-                {showPassword ? (
-                  <EyeSlashIcon className="h-5 w-5 text-gray-400 hover:text-gray-600" />
-                ) : (
-                  <EyeIcon className="h-5 w-5 text-gray-400 hover:text-gray-600" />
-                )}
+              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                {showPassword
+                  ? <EyeSlashIcon className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                  : <EyeIcon className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                }
               </button>
             </div>
-            {errors.password && (
-              <p className="mt-1 text-sm text-red-600">{errors.password}</p>
-            )}
+            {errors.password && <p className="mt-1 text-sm text-red-600">{errors.password}</p>}
           </div>
 
-          {/* Bouton de connexion */}
           <button
-            type="submit"
-            disabled={loading}
+            type="submit" disabled={loading}
             className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 px-4 rounded-xl font-medium hover:from-purple-700 hover:to-pink-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg"
           >
             {loading ? 'Connexion...' : 'Se connecter'}
           </button>
         </form>
 
-        {/* Lien inscription */}
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-600 dark:text-gray-400">
             Pas encore de compte ?{' '}
-            <Link
-              to="/register"
-              className="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-medium"
-            >
+            <Link to="/register" className="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-medium">
               S'inscrire
             </Link>
           </p>
@@ -184,4 +157,3 @@ const LoginForm = () => {
 };
 
 export default LoginForm;
-

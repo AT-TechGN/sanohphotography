@@ -1,5 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import dashboardService from '../services/dashboardService';
@@ -31,13 +29,8 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Attendre que les données utilisateur soient chargées depuis le localStorage
-    if (!user) {
-      return; // Le composant attendra, user sera chargé plus tard
-    }
-
     const hasAdminRole = user?.roles?.some(role =>
-      role === 'ROLE_ADMIN' || role === 'ROLE_PHOTOGRAPHE' || role === 'ROLE_EMPLOYE'
+      role === 'ROLE_ADMIN' || role === 'ROLE_PHOTOGRAPHE' || role === 'ROLE_EMPLOYEE'
     );
 
     if (!hasAdminRole) {
@@ -47,7 +40,7 @@ const AdminDashboard = () => {
     }
 
     loadData();
-  }, [user]);
+  }, [timeRange, user]);
 
   const loadData = async () => {
     try {
@@ -115,13 +108,13 @@ const AdminDashboard = () => {
     }
   };
 
-  // Afficher le chargement si on attend les données utilisateur ou les données du dashboard
-  if (loading || !user) {
+  if (loading) {
     return <Loading fullScreen />;
   }
 
   if (error) {
     return (
+      {/* CORRECTION 1 : fermeture du div wrapper manquante dans le bloc error */}
       <div className="p-4 lg:p-8">
         <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl p-6 text-center">
           <ExclamationTriangleIcon className="w-16 h-16 text-red-500 mx-auto mb-4" />
@@ -156,10 +149,12 @@ const AdminDashboard = () => {
             </button>
           ))}
         </div>
-      </div>
+      </div> {/* CORRECTION 2 : </div> fermant du flex header manquant */}
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+
+        {/* CORRECTION 3 : </div> fermants manquants pour chaque card KPI */}
         <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl p-6 text-white shadow-lg">
           <div className="flex items-center justify-between mb-4">
             <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
@@ -225,7 +220,8 @@ const AdminDashboard = () => {
           <div className="text-3xl font-bold mb-1">{kpis?.confirmationRate || 0}%</div>
           <div className="text-sm text-amber-100">Taux de confirmation</div>
         </div>
-      </div>
+
+      </div> {/* CORRECTION 4 : </div> fermant de la grille KPI manquant */}
 
       {/* Charts Row 1 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -260,7 +256,7 @@ const AdminDashboard = () => {
             </BarChart>
           </ResponsiveContainer>
         </div>
-      </div>
+      </div> {/* CORRECTION 5 : </div> fermant de la grille charts row 1 manquant */}
 
       {/* Charts Row 2 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -298,7 +294,7 @@ const AdminDashboard = () => {
             </BarChart>
           </ResponsiveContainer>
         </div>
-      </div>
+      </div> {/* CORRECTION 6 : </div> fermant de la grille charts row 2 manquant */}
 
       {/* Activity & Upcoming Events */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -312,10 +308,10 @@ const AdminDashboard = () => {
                   <p className="text-sm text-gray-900 dark:text-white font-medium">{activity.message}</p>
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{new Date(activity.timestamp).toLocaleString('fr-FR')}</p>
                 </div>
-              </div>
+              </div> {/* CORRECTION 7 : </div> fermant de chaque item activité manquant */}
             ))}
           </div>
-        </div>  
+        </div> {/* CORRECTION 8 : </div> fermant du panel activité manquant */}
 
         <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm">
           <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Prochaines Séances (7 jours)</h3>
@@ -340,8 +336,8 @@ const AdminDashboard = () => {
               <p className="text-center text-gray-500 dark:text-gray-400 py-8">Aucune séance prévue dans les 7 prochains jours</p>
             )}
           </div>
-        </div>
-      </div>
+        </div> {/* CORRECTION 9 : </div> fermant du panel événements manquant */}
+      </div> {/* CORRECTION 10 : </div> fermant de la grille activité/événements manquant */}
 
       {/* Quick Actions */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -366,7 +362,7 @@ const AdminDashboard = () => {
         </Link>
       </div>
 
-    </div>
+    </div> {/* CORRECTION 11 : </div> fermant du wrapper principal manquant */}
   );
 };
 

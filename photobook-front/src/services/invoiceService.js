@@ -2,8 +2,38 @@ import api from './api';
 
 /**
  * Service pour la facturation
+ *
+ * CORRECTION : getAll() appelait GET /invoices → 404 (route inexistante)
+ * Le backend avait seulement /invoices/my-invoices et /invoices/stats.
+ * Corrigé → GET /invoices (nouvelle route ajoutée dans InvoiceController)
  */
 const invoiceService = {
+
+  /**
+   * Toutes les factures (admin)
+   * CORRECTION : route /invoices ajoutée au backend
+   */
+  async getAll(params = {}) {
+    const query = new URLSearchParams();
+    if (params.status && params.status !== 'all') query.set('status', params.status);
+    if (params.page)  query.set('page',  params.page);
+    if (params.limit) query.set('limit', params.limit);
+
+    const response = await api.get(`/invoices${query.toString() ? `?${query}` : ''}`);
+    // La nouvelle route retourne { data: [...], pagination: {...} }
+    // Pour compatibilité avec le code existant qui attendait un tableau direct,
+    // on retourne data si présent, sinon la réponse directe
+    return Array.isArray(response.data) ? response.data : (response.data?.data ?? response.data);
+  },
+
+  /**
+   * Une facture par ID
+   */
+  async getById(id) {
+    const response = await api.get(`/invoices/${id}`);
+    return response.data;
+  },
+
   /**
    * Créer une facture (admin)
    */
@@ -13,17 +43,15 @@ const invoiceService = {
   },
 
   /**
-   * Télécharger une facture en PDF
+   * Télécharger PDF
    */
   async downloadPdf(id) {
-    const response = await api.get(`/invoices/${id}/pdf`, {
-      responseType: 'blob',
-    });
+    const response = await api.get(`/invoices/${id}/pdf`, { responseType: 'blob' });
     return response.data;
   },
 
   /**
-   * Marquer une facture comme payée (admin)
+   * Marquer comme payée (admin)
    */
   async markPaid(id, paymentMethod) {
     const response = await api.patch(`/invoices/${id}/mark-paid`, {
@@ -33,7 +61,7 @@ const invoiceService = {
   },
 
   /**
-   * Annuler une facture (admin)
+   * Annuler (admin)
    */
   async cancel(id) {
     const response = await api.patch(`/invoices/${id}/cancel`);
@@ -41,7 +69,7 @@ const invoiceService = {
   },
 
   /**
-   * Obtenir les factures du client connecté
+   * Factures du client connecté
    */
   async getMyInvoices() {
     const response = await api.get('/invoices/my-invoices');
@@ -49,7 +77,7 @@ const invoiceService = {
   },
 
   /**
-   * Obtenir les statistiques des factures (admin)
+   * Statistiques (admin)
    */
   async getStats() {
     const response = await api.get('/invoices/stats');
@@ -57,33 +85,17 @@ const invoiceService = {
   },
 
   /**
-   * Exporter les factures en CSV (admin)
+   * Export CSV (admin)
    */
   async exportCsv(startDate = null, endDate = null) {
     const params = {};
     if (startDate) params.start_date = startDate;
-    if (endDate) params.end_date = endDate;
+    if (endDate)   params.end_date   = endDate;
 
     const response = await api.get('/invoices/export', {
       params,
       responseType: 'blob',
     });
-    return response.data;
-  },
-
-  /**
-   * Obtenir toutes les factures (admin)
-   */
-  async getAll() {
-    const response = await api.get('/invoices');
-    return response.data;
-  },
-
-  /**
-   * Obtenir une facture par ID
-   */
-  async getById(id) {
-    const response = await api.get(`/invoices/${id}`);
     return response.data;
   },
 };
