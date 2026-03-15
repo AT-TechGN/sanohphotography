@@ -103,17 +103,26 @@ final class BookingController extends AbstractController
             return $this->json(['error' => 'Format de date/heure invalide'], Response::HTTP_BAD_REQUEST);
         }
 
-        // Créer la réservation
+        // Créer la réservation - CORRIGÉ pour matcher entité Booking
         $booking = new Booking();
         $booking->setService($service);
         $booking->setClient($this->getUser());
-        $booking->setScheduledDate($scheduledDate);
-        $booking->setScheduledTime($scheduledTime);
+        $booking->setBookingDate($scheduledDate);
+        $booking->setStartTime($scheduledTime);
         $booking->setStatus(BookingStatus::PENDING->value);
-        $booking->setParticipants($data['participants'] ?? 1);
-        $booking->setNotes($data['notes'] ?? null);
+        // participants → converti en clientNotes (intangible pour l'instant)
+        $clientNotes = ($data['participants'] ?? 1) . ' participant(s)';
+        if (!empty($data['notes'])) {
+            $clientNotes .= ' - Notes: ' . $data['notes'];
+        }
+        $booking->setClientNotes($clientNotes ?: null);
         $booking->setTotalPrice($data['total_price'] ?? $service->getBasePrice());
         $booking->setCreatedAt(new \DateTime());
+        
+        // Calcul endTime = startTime + durée service
+        $endTime = clone $scheduledTime;
+        $endTime->add(new \DateInterval('PT' . $service->getDurationMin() . 'M'));
+        $booking->setEndTime($endTime);
 
         // Assigner automatiquement un employé disponible
         $employee = $this->bookingService->assignEmployee($booking);
@@ -122,7 +131,7 @@ final class BookingController extends AbstractController
                 'error' => 'Aucun employé disponible pour ce créneau'
             ], Response::HTTP_CONFLICT);
         }
-        $booking->setAssignedEmployee($employee);
+        $booking->setEmployee($employee);
 
         // Validation
         $errors = $this->validator->validate($booking);
@@ -401,6 +410,45 @@ final class BookingController extends AbstractController
             'monthBookings' => (int) $monthBookings,
             'pendingBookings' => $pendingBookings,
             'statusDistribution' => $statusDistribution
+        ]);
+    }
+
+    /**
+     * Lister toutes les réservations (Admin)
+     * Supporte filtres: status, start_date, end_date
+     */
+    #[Route('/admin/bookings', name: 'api_admin_bookings_list', methods: ['GET'])]
+    public function getAllBookingsAdmin(Request $request): JsonResponse
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        $status = $request->query->get('status');
+        $startDate = $request->query->get('start_date');
+        $endDate = $request->query->get('end_date');
+
+        $qb = $this->bookingRepository->createQueryBuilder('b')
+            ->orderBy('b.bookingDate', 'DESC')
+            ->addOrderBy('b.startTime', 'DESC');
+
+        if ($status && $status !== 'all') {
+            $qb->andWhere('b.status = :status')
+               ->setParameter('status', $status);
+        }
+
+        if ($startDate) {
+            $qb->andWhere('b.bookingDate >= :start_date')
+               ->setParameter('start_date', $startDate);
+        }
+
+        if ($endDate) {
+            $qb->andWhere('b.bookingDate <= :end_date')
+               ->setParameter('end_date', $endDate);
+        }
+
+        $bookings = $qb->getQuery()->getResult();
+
+        return $this->json($bookings, Response::HTTP_OK, [], [
+            'groups' => ['booking:read']
         ]);
     }
 }

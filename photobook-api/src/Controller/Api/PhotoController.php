@@ -285,8 +285,14 @@ final class PhotoController extends AbstractController
      * Ajouter des photos à un album (upload simple - pour intégration avec front)
      */
     #[Route('/photos', name: 'app_api_admin_photo_create', methods: ['POST'])]
+    /**
+     * Ajouter des photos à un album (upload simple - Admin only)
+     */
+    #[Route('/photos', name: 'app_api_admin_photo_create', methods: ['POST'])]
     public function addPhotos(Request $request): Response
     {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
         $albumId = $request->request->get('albumId');
         $files = $request->files->get('files');
         
@@ -302,17 +308,22 @@ final class PhotoController extends AbstractController
         $uploadedPhotos = [];
         
         if ($files) {
-            $uploadDir = $this->getParameter('kernel.project_dir') . '/public/uploads/photos/';
-            $thumbDir = $this->getParameter('kernel.project_dir') . '/public/uploads/thumbnails/';
+            $projectDir = $this->getParameter('kernel.project_dir');
+            $uploadDir = $projectDir . '/public/uploads/photos/';
+            $thumbDir = $projectDir . '/public/uploads/thumbnails/';
+            
+            // Créer dirs si manquants
+            if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
+            if (!is_dir($thumbDir)) mkdir($thumbDir, 0755, true);
             
             foreach ($files as $file) {
                 $originalFilename = $file->getClientOriginalName();
-                $newFilename = uniqid() . '.' . $file->getExtension();
+                $newFilename = uniqid() . '.' . $file->getClientOriginalExtension();
                 
-                // Déplacer le fichier
+                // Move file
                 $file->move($uploadDir, $newFilename);
                 
-                // Créer la photo en base
+                // Create photo entity
                 $photo = new Photo();
                 $photo->setFilePath('/uploads/photos/' . $newFilename);
                 $photo->setThumbnailPath('/uploads/thumbnails/' . $newFilename);
@@ -472,29 +483,28 @@ final class PhotoController extends AbstractController
     }
 
     /**
-     * Statistiques photos
+     * Statistiques photos - OPTIMISÉ
      */
     #[Route('/photos/stats', name: 'app_api_admin_photos_stats', methods: ['GET'])]
     public function getStats(): Response
     {
         $totalPhotos = $this->photoRepository->count([]);
         $totalAlbums = $this->albumRepository->count([]);
-        $publicAlbums = $this->albumRepository->findBy(['isPublic' => true]);
+        $publicAlbums = $this->albumRepository->count(['isPublic' => true]);
         
         $thisMonth = new \DateTime('first day of this month');
-        $photosThisMonth = 0;
-        foreach ($this->photoRepository->findAll() as $photo) {
-            $createdAt = $photo->getAlbum()?->getCreatedAt();
-            if ($createdAt && $createdAt >= $thisMonth) {
-                $photosThisMonth++;
-            }
-        }
+        $photosThisMonthQB = $this->photoRepository->createQueryBuilder('p')
+            ->select('COUNT(p.id)')
+            ->leftJoin('p.album', 'a')
+            ->where('a.createdAt >= :thisMonth')
+            ->setParameter('thisMonth', $thisMonth);
+        $photosThisMonth = (int) $photosThisMonthQB->getQuery()->getSingleScalarResult();
 
         return $this->json([
-            'totalPhotos' => $totalPhotos,
-            'totalAlbums' => $totalAlbums,
-            'publicAlbums' => count($publicAlbums),
-            'photosThisMonth' => $photosThisMonth,
+            'totalPhotos' => (int) $totalPhotos,
+            'totalAlbums' => (int) $totalAlbums,
+            'publicAlbums' => (int) $publicAlbums,
+            'photosThisMonth' => (int) $photosThisMonth,
         ]);
     }
 }

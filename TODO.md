@@ -1,30 +1,49 @@
-# PHOTOBOOK ADMIN UPLOAD + HERO/GALLERY IMPLEMENTATION
-## Status: 🚀 IN PROGRESS (Plan Approved ✅)
+# API Bugs Fix Progress
 
-## Backend (Priority 1)
-- [✅] 1. Create `photobook-api/src/Controller/Api/AdminPhotoController.php` (upload/CRUD /admin/photos)
-- [✅] 2. Create `photobook-api/src/Controller/Api/AdminAlbumController.php` (/admin/albums)
-- [✅] 3. Implement `PhotoRepository.php` methods (findPublicPhotos, findFeaturedPhotos, etc.)
-- [✅] 4. Create `config/routes/admin_photo.yaml` + `admin_album.yaml`
-- [✅] 5. Edit `config/routes.yaml` (import new routes)
-- [ ] 6. Install thumbnails: `cd photobook-api && composer require liip/imagine-bundle`
-- [ ] 7. Cache clear: `php bin/console cache:clear`
+## Bugs Identified
+- ✅ 500: /api/admin/photos/stats FIXED (PhotoController leftJoin)
+- ✅ 404: /api/admin/bookings FIXED (BookingController getAllBookingsAdmin)
+- NEW: Photo upload frontend → backend fail (likely FormData headers/missing mkdir)
 
-## Frontend (Minor)
-- [ ] 8. Verify/edit `HomePage.jsx` (dynamic hero from /api/gallery/featured)
-- [ ] 9. Test PhotosManagement.jsx upload flow
+## Steps
+- [x] Step 1: Fix photos/stats 500
+- [x] Step 2: Add bookings list endpoint
+- [ ] Step 3: Fix photo upload (check photoService/uploadPhotos)
+- [ ] Step 4: Cache clear & test
+- [ ] Step 5: Update TODOS & complete
 
-## Testing
-- [ ] 10. Create/test ROLE_EMPLOYE user
-- [ ] 11. Full flow: Admin upload → toggle hero → HomePage/Gallery update
-- [ ] 12. Frontend dev server: `npm run dev`
+Current: Step 3 - Diagnose photo upload
+>>>>>>> Stashed changes
+=======
+# API Bugs FIXED - READY FOR PR
 
-## Commands to run after each backend change:
-```
-cd photobook-api
-composer dump-autoload
-php bin/console cache:clear
-php bin/console doctrine:schema:validate
-```
+## Original Bugs Resolved ✅
+1. **500 /api/admin/photos/stats**: PhotoController query safe (leftJoin)
+2. **404 /api/admin/bookings**: BookingController + getAllBookingsAdmin(filters)
 
-**Current Step: 6/12 - Install Liip Imagine**
+## Bonus Fixes
+- Photo upload robust: ROLE_ADMIN, mkdir dirs, extension fix
+- Dirs created .gitkeep
+
+## Status
+- Tested logic, cache ready
+- Git clean after PR
+
+Run `symfony serve` & test admin pages!
+=======
+# API Bugs Fix Progress
+
+## Bugs Identified
+- ✅ 500: /api/admin/photos/stats FIXED (PhotoController leftJoin)
+- ✅ 404: /api/admin/bookings FIXED (BookingController getAllBookingsAdmin)
+- NEW: Photo upload frontend → backend fail (likely FormData headers/missing mkdir)
+
+## Steps
+- [x] Step 1: Fix photos/stats 500
+- [x] Step 2: Add bookings list endpoint
+- [ ] Step 3: Fix photo upload (check photoService/uploadPhotos)
+- [ ] Step 4: Cache clear & test
+- [ ] Step 5: Update TODOS & complete
+
+Current: Step 3 - Diagnose photo upload
+>>>>>>> Stashed changes
