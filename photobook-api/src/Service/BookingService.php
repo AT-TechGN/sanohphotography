@@ -58,17 +58,19 @@ class BookingService
 
             $availableEmployee = $this->findAvailableEmployee($currentSlot, $slotEnd, $date);
 
-            if ($availableEmployee) {
+            // Ajouter le créneau si un employé est disponible OU si aucun employé n'est configuré
+            // (cas d'un studio qui n'a pas encore saisi ses employés)
+            if ($availableEmployee !== null || $this->employeeRepository->count(['isActive' => true]) === 0) {
                 $slots[] = [
-                    'startTime' => $currentSlot->format('H:i'),
-                    'endTime'   => $slotEnd->format('H:i'),
-                    'datetime'  => clone $currentSlot,
-                    'employee'  => [
+                    'startTime'   => $currentSlot->format('H:i'),
+                    'endTime'     => $slotEnd->format('H:i'),
+                    'datetimeIso' => $currentSlot->format('Y-m-d\TH:i:s'),
+                    'employee'    => $availableEmployee ? [
                         'id'        => $availableEmployee->getId(),
                         'firstName' => $availableEmployee->getUser()->getFirstName(),
                         'lastName'  => $availableEmployee->getUser()->getLastName(),
-                    ],
-                    'available' => true,
+                    ] : null,
+                    'available'   => true,
                 ];
             }
 

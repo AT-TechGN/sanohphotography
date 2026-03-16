@@ -115,12 +115,17 @@ final class BookingController extends AbstractController
         $booking->setClientNotes($data['notes'] ?? null);
         $booking->setCreatedAt(new \DateTime());
 
-        // Assigner automatiquement un employé disponible
+        // Assigner automatiquement un employé disponible si possible
+        // Si aucun employé configuré, la réservation est créée sans assignation
         $employee = $this->bookingService->assignEmployee($booking);
-        if (!$employee) {
-            return $this->json(['error' => 'Aucun employé disponible pour ce créneau'], Response::HTTP_CONFLICT);
+        if ($employee) {
+            $booking->setEmployee($employee);
         }
-        $booking->setEmployee($employee);
+        // Si pas d'employé disponible mais des employés existent → conflit
+        elseif ($this->employeeRepository->count(['isActive' => true]) > 0) {
+            return $this->json(['error' => 'Aucun employé disponible pour ce créneau. Choisissez un autre horaire.'], Response::HTTP_CONFLICT);
+        }
+        // Si aucun employé en base → on accepte la réservation sans assignation
 
         $errors = $this->validator->validate($booking);
         if (count($errors) > 0) {
