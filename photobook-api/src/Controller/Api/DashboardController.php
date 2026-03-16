@@ -57,7 +57,7 @@ final class DashboardController extends AbstractController
             ->getQuery()->getSingleScalarResult();
 
         $monthRevenue = (float) $this->invoiceRepository->createQueryBuilder('i')
-            ->select('COALESCE(SUM(i.amount), 0)')
+            ->select('COALESCE(SUM(i.amountTtc), 0)')
             ->where('i.status = :paid AND i.paidAt >= :month')
             ->setParameter('paid', InvoiceStatus::PAID->value)
             ->setParameter('month', $thisMonth)
@@ -128,7 +128,7 @@ final class DashboardController extends AbstractController
             $date     = (clone $startDate)->modify("+{$i} days");
             $nextDate = (clone $date)->modify('+1 day');
             $amount = (float) $this->invoiceRepository->createQueryBuilder('i')
-                ->select('COALESCE(SUM(i.amount), 0)')
+                ->select('COALESCE(SUM(i.amountTtc), 0)')
                 ->where('i.paidAt >= :date AND i.paidAt < :nextDate AND i.status = :paid')
                 ->setParameter('date', $date)
                 ->setParameter('nextDate', $nextDate)
@@ -219,16 +219,16 @@ final class DashboardController extends AbstractController
             ];
         }
 
-        $recentInvoices = $this->invoiceRepository->findBy([], ['issuedAt' => 'DESC'], (int)($limit / 4));
+        $recentInvoices = $this->invoiceRepository->findBy([], ['createdAt' => 'DESC'], (int)($limit / 4));
         foreach ($recentInvoices as $invoice) {
             $activities[] = [
                 'type'      => 'invoice',
                 'message'   => sprintf('Facture %s : %s GNF (%s)',
                     $invoice->getInvoiceNumber(),
-                    number_format((float)$invoice->getAmount(), 0, ',', ' '),
+                    number_format((float)($invoice->getAmountTtc() ?? 0), 0, ',', ' '),
                     $invoice->getStatus()
                 ),
-                'timestamp' => $invoice->getIssuedAt()?->format('c') ?? (new \DateTime())->format('c'),
+                'timestamp' => $invoice->getCreatedAt()?->format('c') ?? (new \DateTime())->format('c'),
                 'data'      => ['id' => $invoice->getId(), 'number' => $invoice->getInvoiceNumber(), 'status' => $invoice->getStatus()],
             ];
         }
@@ -350,7 +350,7 @@ final class DashboardController extends AbstractController
                 ->select('COUNT(b.id)')->getQuery()->getSingleScalarResult(),
 
             'totalRevenue' => (float) $this->invoiceRepository->createQueryBuilder('i')
-                ->select('COALESCE(SUM(i.amount), 0)')->where('i.status = :paid')
+                ->select('COALESCE(SUM(i.amountTtc), 0)')->where('i.status = :paid')
                 ->setParameter('paid', InvoiceStatus::PAID->value)->getQuery()->getSingleScalarResult(),
 
             'totalPhotos' => (int) $this->photoRepository->createQueryBuilder('p')

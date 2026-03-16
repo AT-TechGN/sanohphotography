@@ -46,7 +46,7 @@ final class InvoiceController extends AbstractController
         $limit  = min(100, max(1, (int)$request->query->get('limit', 50)));
 
         $qb = $this->invoiceRepository->createQueryBuilder('i')
-            ->orderBy('i.issuedAt', 'DESC');
+            ->orderBy('i.createdAt', 'DESC');
 
         if ($status && $status !== 'all') {
             $qb->where('i.status = :status')->setParameter('status', $status);
@@ -105,11 +105,13 @@ final class InvoiceController extends AbstractController
         $invoice = new Invoice();
         $invoice->setBooking($booking);
         $invoice->setInvoiceNumber($this->generateInvoiceNumber());
-        $invoice->setAmount((string)($data['amount'] ?? $booking->getTotalPrice()));
+        $totalTtc = (string)($data['amountTtc'] ?? $data['amount'] ?? $booking->getTotalPrice());
+        $invoice->setAmountTtc($totalTtc);
+        $invoice->setAmountHt((string)round((float)$totalTtc / 1.18, 2));
+        $invoice->setTaxRate((string)($data['taxRate'] ?? '18.00'));
         $invoice->setStatus(InvoiceStatus::PENDING->value);
         $invoice->setDueDate(new \DateTime($data['due_date'] ?? '+30 days'));
-        $invoice->setNotes($data['notes'] ?? null);
-        $invoice->setIssuedAt(new \DateTime());
+        $invoice->setCreatedAt(new \DateTime());
 
         $errors = $this->validator->validate($invoice);
         if (count($errors) > 0) {
@@ -170,8 +172,7 @@ final class InvoiceController extends AbstractController
 
         $data = json_decode($request->getContent(), true) ?? [];
         $invoice->setStatus(InvoiceStatus::PAID->value);
-        $invoice->setPaidAt(new \DateTime());
-        $invoice->setPaymentMethod($data['payment_method'] ?? null);
+        $invoice->setPaidAt(new \DateTime()); // paymentMethod non présent sur l'entité Invoice
         $this->em->flush();
 
         return $this->json(['message' => 'Facture payée', 'invoice' => $this->serializeInvoice($invoice)]);
@@ -210,7 +211,7 @@ final class InvoiceController extends AbstractController
             ->innerJoin('i.booking', 'b')
             ->where('b.client = :client')
             ->setParameter('client', $this->getUser())
-            ->orderBy('i.issuedAt', 'DESC')
+            ->orderBy('i.createdAt', 'DESC')
             ->getQuery()->getResult();
 
         return $this->json(array_map([$this, 'serializeInvoice'], $invoices));
@@ -227,14 +228,14 @@ final class InvoiceController extends AbstractController
         $thisMonth = new \DateTime('first day of this month');
 
         $monthRevenue = $this->invoiceRepository->createQueryBuilder('i')
-            ->select('SUM(i.amount)')
+            ->select('COALESCE(SUM(i.amountTtc), 0)')
             ->where('i.status = :paid AND i.paidAt >= :month')
             ->setParameter('paid', InvoiceStatus::PAID->value)
             ->setParameter('month', $thisMonth)
             ->getQuery()->getSingleScalarResult();
 
         $pendingAmount = $this->invoiceRepository->createQueryBuilder('i')
-            ->select('SUM(i.amount)')
+            ->select('COALESCE(SUM(i.amountTtc), 0)')
             ->where('i.status = :pending')
             ->setParameter('pending', InvoiceStatus::PENDING->value)
             ->getQuery()->getSingleScalarResult();
@@ -267,13 +268,13 @@ final class InvoiceController extends AbstractController
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
-        $qb = $this->invoiceRepository->createQueryBuilder('i')->orderBy('i.issuedAt', 'DESC');
+        $qb = $this->invoiceRepository->createQueryBuilder('i')->orderBy('i.createdAt', 'DESC');
 
         $startDate = $request->query->get('start_date');
         $endDate   = $request->query->get('end_date');
 
         if ($startDate && $endDate) {
-            $qb->where('i.issuedAt BETWEEN :start AND :end')
+            $qb->where('i.createdAt BETWEEN :start AND :end')
                ->setParameter('start', new \DateTime($startDate))
                ->setParameter('end', new \DateTime($endDate));
         }
@@ -286,10 +287,10 @@ final class InvoiceController extends AbstractController
             $csv .= sprintf(
                 '"%s","%s","%s","%s","%s","%s","%s"' . "\n",
                 $invoice->getInvoiceNumber(),
-                $invoice->getIssuedAt()->format('Y-m-d'),
+                $invoice->getCreatedAt()?->format('Y-m-d') ?? 'N/A',
                 $booking->getClient()->getEmail(),
                 $booking->getService()->getName(),
-                $invoice->getAmount(),
+                $invoice->getAmountTtc() ?? $invoice->getAmountHt(),
                 $invoice->getStatus(),
                 $invoice->getPaidAt() ? $invoice->getPaidAt()->format('Y-m-d') : 'N/A'
             );
@@ -328,12 +329,15 @@ final class InvoiceController extends AbstractController
         return [
             'id'            => $i->getId(),
             'invoiceNumber' => $i->getInvoiceNumber(),
-            'amount'        => $i->getAmount(),
+            'amountHt'      => $i->getAmountHt(),
+            'taxRate'       => $i->getTaxRate(),
+            'amountTtc'     => $i->getAmountTtc(),
+            'amount'        => $i->getAmountTtc(), // alias rétrocompat
             'status'        => $i->getStatus(),
-            'issuedAt'      => $i->getIssuedAt()?->format('c'),
+            'issuedAt'      => $i->getCreatedAt()?->format('c'),  // alias createdAt
             'dueDate'       => $i->getDueDate()?->format('Y-m-d'),
             'paidAt'        => $i->getPaidAt()?->format('c'),
-            'paymentMethod' => $i->getPaymentMethod(),
+            // paymentMethod non présent sur l'entité Invoice
             'notes'         => $i->getNotes(),
             'booking'       => $booking ? [
                 'id'      => $booking->getId(),
