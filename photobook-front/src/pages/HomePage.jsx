@@ -66,7 +66,7 @@ const HomePage = () => {
       }
     };
     fetchHero();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   // ── Fetch gallery ───────────────────────────────────────────────────────────
   useEffect(() => {
@@ -84,7 +84,7 @@ const HomePage = () => {
       }
     };
     fetchGallery();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   // ── Fetch stats ─────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -113,7 +113,7 @@ const HomePage = () => {
       }
     };
     fetchStats();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   // ── Fetch services ──────────────────────────────────────────────────────────
   useEffect(() => {
@@ -142,7 +142,7 @@ const HomePage = () => {
       }
     };
     fetchServices();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   // ── Fetch reviews ───────────────────────────────────────────────────────────
   useEffect(() => {
@@ -171,7 +171,7 @@ const HomePage = () => {
       }
     };
     fetchReviews();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   // ── Lightbox handlers ───────────────────────────────────────────────────────
   // CORRECTION 9 : useCallback pour éviter les re-renders inutiles

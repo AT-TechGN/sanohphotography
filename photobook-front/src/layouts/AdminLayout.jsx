@@ -85,13 +85,10 @@ export default function AdminLayout() {
   }, []);
 
   // Fermer la sidebar au changement de route
-  // Note: on utilise useEffect avec flushSync pour éviter le warning cascading renders
-  // Alternative : ref pour tracker le pathname précédent
-  const prevPathnameRef = useRef(location.pathname);
-  if (prevPathnameRef.current !== location.pathname) {
-    prevPathnameRef.current = location.pathname;
-    if (sidebarOpen) setSidebarOpen(false);
-  }
+  useEffect(() => {
+    const t = setTimeout(() => setSidebarOpen(false), 0);
+    return () => clearTimeout(t);
+  }, [location.pathname]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Bloquer le scroll body quand sidebar ouverte sur mobile
   useEffect(() => {
@@ -150,12 +147,13 @@ export default function AdminLayout() {
             Menu
           </p>
           <div className="space-y-0.5">
-            {visibleMenu.map(({ path, label, Icon: MenuIcon, exact }) => {
-              const active = isActive(path, exact);
+            {visibleMenu.map((item) => {
+              const active = isActive(item.path, item.exact);
+              const ItemIcon = item.Icon;
               return (
                 <Link
-                  key={path}
-                  to={path}
+                  key={item.path}
+                  to={item.path}
                   className={[
                     'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all',
                     active
@@ -163,8 +161,8 @@ export default function AdminLayout() {
                       : 'text-gray-400 hover:bg-white/5 hover:text-white',
                   ].join(' ')}
                 >
-                  <MenuIcon className="w-4 h-4 flex-shrink-0" />
-                  <span className="truncate">{label}</span>
+                  <ItemIcon className="w-4 h-4 flex-shrink-0" />
+                  <span className="truncate">{item.label}</span>
                 </Link>
               );
             })}
@@ -272,12 +270,13 @@ export default function AdminLayout() {
           className="grid"
           style={{ gridTemplateColumns: `repeat(${BOTTOM_TABS.length}, 1fr)` }}
         >
-          {BOTTOM_TABS.map(({ path, label, Icon: TabIcon, exact }) => {
-            const active = isActive(path, exact);
+          {BOTTOM_TABS.map((tab) => {
+            const active = isActive(tab.path, tab.exact);
+            const TabIcon = tab.Icon;
             return (
               <Link
-                key={path}
-                to={path}
+                key={tab.path}
+                to={tab.path}
                 className={[
                   'flex flex-col items-center justify-center py-2 gap-0.5 min-h-[56px] transition-all active:scale-95',
                   active ? 'text-amber-500' : 'text-gray-400 dark:text-gray-500',
@@ -287,7 +286,7 @@ export default function AdminLayout() {
                   <TabIcon className="w-5 h-5" />
                 </div>
                 <span className={`text-[10px] leading-none ${active ? 'font-semibold' : 'font-medium'}`}>
-                  {label}
+                  {tab.label}
                 </span>
               </Link>
             );
