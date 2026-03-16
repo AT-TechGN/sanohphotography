@@ -85,7 +85,7 @@ final class PhotoController extends AbstractController
     /**
      * Obtenir un album (admin)
      */
-    #[Route('/albums/{id}', name: 'app_api_admin_album_get', methods: ['GET'])]
+    #[Route('/albums/{id}', name: 'app_api_admin_album_get', methods: ['GET'], requirements: ['id' => '\d+'])]
     public function getAlbum(int $id): Response
     {
         $album = $this->albumRepository->find($id);
@@ -165,7 +165,7 @@ final class PhotoController extends AbstractController
     /**
      * Mettre à jour un album
      */
-    #[Route('/albums/{id}', name: 'app_api_admin_album_update', methods: ['PUT'])]
+    #[Route('/albums/{id}', name: 'app_api_admin_album_update', methods: ['PUT'], requirements: ['id' => '\d+'])]
     public function updateAlbum(int $id, Request $request): Response
     {
         $album = $this->albumRepository->find($id);
@@ -199,7 +199,7 @@ final class PhotoController extends AbstractController
     /**
      * Supprimer un album
      */
-    #[Route('/albums/{id}', name: 'app_api_admin_album_delete', methods: ['DELETE'])]
+    #[Route('/albums/{id}', name: 'app_api_admin_album_delete', methods: ['DELETE'], requirements: ['id' => '\d+'])]
     public function deleteAlbum(int $id): Response
     {
         $album = $this->albumRepository->find($id);
@@ -254,7 +254,39 @@ final class PhotoController extends AbstractController
     /**
      * Obtenir une photo (admin)
      */
-    #[Route('/photos/{id}', name: 'app_api_admin_photo_get', methods: ['GET'])]
+    /**
+     * GET /api/admin/photos/stats
+     * CORRECTION : route déplacée AVANT /photos/{id} pour éviter que
+     * 'stats' soit interprété comme un entier → exception Doctrine
+     * CORRECTION : utilise des COUNT DQL au lieu de findAll() en mémoire
+     */
+    #[Route('/photos/stats', name: 'app_api_admin_photos_stats', methods: ['GET'])]
+    public function getStats(): Response
+    {
+        $thisMonth = new \DateTime('first day of this month');
+
+        $totalPhotos = $this->photoRepository->count([]);
+        $totalAlbums = $this->albumRepository->count([]);
+        $publicAlbums = $this->albumRepository->count(['isPublic' => true]);
+
+        // Compter les photos de ce mois via DQL (pas findAll → mémoire)
+        $photosThisMonth = (int) $this->photoRepository->createQueryBuilder('p')
+            ->select('COUNT(p.id)')
+            ->innerJoin('p.album', 'a')
+            ->where('a.createdAt >= :month')
+            ->setParameter('month', $thisMonth)
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        return $this->json([
+            'totalPhotos'     => $totalPhotos,
+            'totalAlbums'     => $totalAlbums,
+            'publicAlbums'    => $publicAlbums,
+            'photosThisMonth' => $photosThisMonth,
+        ]);
+    }
+
+    #[Route('/photos/{id}', name: 'app_api_admin_photo_get', methods: ['GET'], requirements: ['id' => '\d+'])]
     public function getPhoto(int $id): Response
     {
         $photo = $this->photoRepository->find($id);
@@ -343,7 +375,7 @@ final class PhotoController extends AbstractController
     /**
      * Mettre à jour une photo
      */
-    #[Route('/photos/{id}', name: 'app_api_admin_photo_update', methods: ['PUT'])]
+    #[Route('/photos/{id}', name: 'app_api_admin_photo_update', methods: ['PUT'], requirements: ['id' => '\d+'])]
     public function updatePhoto(int $id, Request $request): Response
     {
         $photo = $this->photoRepository->find($id);
@@ -389,7 +421,7 @@ final class PhotoController extends AbstractController
     /**
      * Supprimer une photo
      */
-    #[Route('/photos/{id}', name: 'app_api_admin_photo_delete', methods: ['DELETE'])]
+    #[Route('/photos/{id}', name: 'app_api_admin_photo_delete', methods: ['DELETE'], requirements: ['id' => '\d+'])]
     public function deletePhoto(int $id): Response
     {
         $photo = $this->photoRepository->find($id);
@@ -474,20 +506,6 @@ final class PhotoController extends AbstractController
     /**
      * Statistiques photos
      */
-    #[Route('/photos/stats', name: 'app_api_admin_photos_stats', methods: ['GET'])]
-    public function getStats(): Response
-    {
-        $totalPhotos = $this->photoRepository->count([]);
-        $totalAlbums = $this->albumRepository->count([]);
-        $publicAlbums = $this->albumRepository->findBy(['isPublic' => true]);
-        
-        $thisMonth = new \DateTime('first day of this month');
-        $photosThisMonth = 0;
-        foreach ($this->photoRepository->findAll() as $photo) {
-            $createdAt = $photo->getAlbum()?->getCreatedAt();
-            if ($createdAt && $createdAt >= $thisMonth) {
-                $photosThisMonth++;
-            }
         }
 
         return $this->json([
