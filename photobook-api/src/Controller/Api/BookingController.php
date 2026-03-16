@@ -377,59 +377,68 @@ final class BookingController extends AbstractController
      * GET /api/admin/bookings — Liste toutes les réservations (admin/photographe)
      * CORRECTION : Cette route n'existait pas → bookingService.getAllBookings() retournait 404
      */
+
+    /**
+     * GET /api/bookings/debug — Diagnostic (à supprimer après fix)
+     */
+    #[Route('/debug', name: 'api_bookings_debug', methods: ['GET'])]
+    public function debug(): JsonResponse
+    {
+        $this->denyAccessUnlessGranted('ROLE_PHOTOGRAPHE');
+
+        try {
+            $count = $this->bookingRepository->count([]);
+            return $this->json(['status' => 'ok', 'total_bookings' => $count]);
+        } catch (\Exception $e) {
+            return $this->json(['status' => 'error', 'message' => $e->getMessage()], 500);
+        }
+    }
+
     #[Route('/admin-list', name: 'api_admin_bookings_list', methods: ['GET'])]
     public function adminList(Request $request): JsonResponse
     {
         $this->denyAccessUnlessGranted('ROLE_PHOTOGRAPHE');
 
-        try {
-            $status    = $request->query->get('status');
-            $startDate = $request->query->get('start_date');
-            $endDate   = $request->query->get('end_date');
+        $status    = $request->query->get('status');
+        $startDate = $request->query->get('start_date');
+        $endDate   = $request->query->get('end_date');
 
-            $qb = $this->bookingRepository->createQueryBuilder('b')
-                ->addSelect('client', 'service', 'employee', 'empUser')
-                ->leftJoin('b.client',      'client')
-                ->leftJoin('b.service',     'service')
-                ->leftJoin('b.employee',    'employee')
-                ->leftJoin('employee.user', 'empUser')
-                ->orderBy('b.bookingDate', 'DESC')
-                ->addOrderBy('b.startTime', 'DESC');
+        // DQL explicite — charge tout en une requête, zéro lazy loading
+        $dql = 'SELECT b, client, service, employee, empUser
+                FROM App\Entity\Booking b
+                LEFT JOIN b.client      client
+                LEFT JOIN b.service     service
+                LEFT JOIN b.employee    employee
+                LEFT JOIN employee.user empUser';
 
-            if ($status && $status !== 'all') {
-                $qb->andWhere('b.status = :status')
-                   ->setParameter('status', $status);
-            }
-            if ($startDate) {
-                $qb->andWhere('b.bookingDate >= :start')
-                   ->setParameter('start', new \DateTime($startDate));
-            }
-            if ($endDate) {
-                $qb->andWhere('b.bookingDate <= :end')
-                   ->setParameter('end', new \DateTime($endDate));
-            }
+        $conditions = [];
+        $params     = [];
 
-            $bookings = $qb->getQuery()->getResult();
-
-        } catch (\Exception $e) {
-            return $this->json([
-                'error'   => 'Erreur chargement réservations',
-                'message' => $e->getMessage(),
-                'trace'   => substr($e->getTraceAsString(), 0, 500),
-            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        if ($status && $status !== 'all') {
+            $conditions[] = 'b.status = :status';
+            $params['status'] = $status;
+        }
+        if ($startDate) {
+            $conditions[] = 'b.bookingDate >= :startDate';
+            $params['startDate'] = new \DateTime($startDate);
+        }
+        if ($endDate) {
+            $conditions[] = 'b.bookingDate <= :endDate';
+            $params['endDate'] = new \DateTime($endDate);
         }
 
-        $serialized = [];
-        foreach ($bookings as $booking) {
-            try {
-                $serialized[] = $this->serializeBooking($booking);
-            } catch (\Exception $e) {
-                $serialized[] = [
-                    'id'    => $booking->getId(),
-                    'error' => $e->getMessage(),
-                ];
-            }
+        if ($conditions) {
+            $dql .= ' WHERE ' . implode(' AND ', $conditions);
         }
+        $dql .= ' ORDER BY b.bookingDate DESC, b.startTime DESC';
+
+        $query = $this->bookingRepository->getEntityManager()->createQuery($dql);
+        foreach ($params as $key => $val) {
+            $query->setParameter($key, $val);
+        }
+
+        $bookings   = $query->getResult();
+        $serialized = array_map([$this, 'serializeBooking'], $bookings);
 
         return $this->json($serialized);
     }
