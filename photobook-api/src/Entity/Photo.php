@@ -2,12 +2,6 @@
 
 namespace App\Entity;
 
-use ApiPlatform\Metadata\ApiResource;
-use ApiPlatform\Metadata\Get;
-use ApiPlatform\Metadata\GetCollection;
-use ApiPlatform\Metadata\Post;
-use ApiPlatform\Metadata\Put;
-use ApiPlatform\Metadata\Delete;
 use App\Repository\PhotoRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -17,17 +11,6 @@ use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: PhotoRepository::class)]
-#[ApiResource(
-    operations: [
-        new GetCollection(),
-        new Get(),
-        new Post(security: "is_granted('ROLE_EMPLOYE')"),
-        new Put(security: "is_granted('ROLE_EMPLOYE')"),
-        new Delete(security: "is_granted('ROLE_EMPLOYE')")
-    ],
-    normalizationContext: ['groups' => ['photo:read']],
-    denormalizationContext: ['groups' => ['photo:write']]
-)]
 class Photo
 {
     #[ORM\Id]

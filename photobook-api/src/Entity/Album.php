@@ -2,12 +2,6 @@
 
 namespace App\Entity;
 
-use ApiPlatform\Metadata\ApiResource;
-use ApiPlatform\Metadata\Get;
-use ApiPlatform\Metadata\GetCollection;
-use ApiPlatform\Metadata\Post;
-use ApiPlatform\Metadata\Put;
-use ApiPlatform\Metadata\Delete;
 use App\Repository\AlbumRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -16,17 +10,6 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: AlbumRepository::class)]
-#[ApiResource(
-    operations: [
-        new GetCollection(),
-        new Get(),
-        new Post(security: "is_granted('ROLE_EMPLOYE')"),
-        new Put(security: "is_granted('ROLE_EMPLOYE')"),
-        new Delete(security: "is_granted('ROLE_EMPLOYE')")
-    ],
-    normalizationContext: ['groups' => ['album:read']],
-    denormalizationContext: ['groups' => ['album:write']]
-)]
 class Album
 {
     #[ORM\Id]

@@ -2,12 +2,6 @@
 
 namespace App\Entity;
 
-use ApiPlatform\Metadata\ApiResource;
-use ApiPlatform\Metadata\Get;
-use ApiPlatform\Metadata\GetCollection;
-use ApiPlatform\Metadata\Post;
-use ApiPlatform\Metadata\Put;
-use ApiPlatform\Metadata\Delete;
 use App\Repository\BookingRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -16,17 +10,6 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: BookingRepository::class)]
-#[ApiResource(
-    operations: [
-        new GetCollection(security: "is_granted('ROLE_CLIENT')"),
-        new Get(security: "is_granted('ROLE_CLIENT') and object.getClient() == user"),
-        new Post(security: "is_granted('ROLE_CLIENT')"),
-        new Put(security: "is_granted('ROLE_PHOTOGRAPHE')"),
-        new Delete(security: "is_granted('ROLE_PHOTOGRAPHE')")
-    ],
-    normalizationContext: ['groups' => ['booking:read']],
-    denormalizationContext: ['groups' => ['booking:write']]
-)]
 class Booking
 {
     #[ORM\Id]

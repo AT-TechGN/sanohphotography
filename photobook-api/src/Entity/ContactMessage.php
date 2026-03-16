@@ -2,27 +2,12 @@
 
 namespace App\Entity;
 
-use ApiPlatform\Metadata\ApiResource;
-use ApiPlatform\Metadata\Get;
-use ApiPlatform\Metadata\GetCollection;
-use ApiPlatform\Metadata\Post;
-use ApiPlatform\Metadata\Delete;
 use App\Repository\ContactMessageRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: ContactMessageRepository::class)]
-#[ApiResource(
-    operations: [
-        new GetCollection(security: "is_granted('ROLE_PHOTOGRAPHE')"),
-        new Get(security: "is_granted('ROLE_PHOTOGRAPHE')"),
-        new Post(),
-        new Delete(security: "is_granted('ROLE_ADMIN')")
-    ],
-    normalizationContext: ['groups' => ['contact:read']],
-    denormalizationContext: ['groups' => ['contact:write']]
-)]
 class ContactMessage
 {
     #[ORM\Id]
