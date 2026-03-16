@@ -19,6 +19,23 @@ final class GalleryController extends AbstractController
     }
 
     /**
+     * Construit une URL absolue pour un chemin de fichier.
+     * Le frontend peut ainsi afficher les images directement sans configuration.
+     */
+    private function buildUrl(?string $path): ?string
+    {
+        if (!$path) return null;
+        if (str_starts_with($path, 'http')) return $path;
+        // Utilise APP_URL si défini, sinon construit depuis la requête courante
+        $baseUrl = $_ENV['APP_URL'] ?? $_SERVER['HTTP_HOST'] ?? 'http://localhost:8000';
+        if (!str_starts_with($baseUrl, 'http')) {
+            $scheme = ($_SERVER['HTTPS'] ?? 'off') !== 'off' ? 'https' : 'http';
+            $baseUrl = $scheme . '://' . $baseUrl;
+        }
+        return rtrim($baseUrl, '/') . $path;
+    }
+
+    /**
      * Get photos with filters (public)
      * period: all|today|week|month, category, page, limit
      */
@@ -35,8 +52,8 @@ final class GalleryController extends AbstractController
         $data = array_map(function($photo) {
             return [
                 'id' => $photo->getId(),
-                'filePath' => $photo->getFilePath(),
-                'thumbnailPath' => $photo->getThumbnailPath(),
+                'filePath' => $this->buildUrl($photo->getFilePath()),
+                'thumbnailPath' => $this->buildUrl($photo->getThumbnailPath() ?? $photo->getFilePath()),
                 'album' => [
                     'id' => $photo->getAlbum()->getId(),
                     'title' => $photo->getAlbum()->getTitle(),
@@ -71,8 +88,8 @@ final class GalleryController extends AbstractController
         $data = array_map(function($photo) {
             return [
                 'id' => $photo->getId(),
-                'filePath' => $photo->getFilePath(),
-                'thumbnailPath' => $photo->getThumbnailPath(),
+                'filePath' => $this->buildUrl($photo->getFilePath()),
+                'thumbnailPath' => $this->buildUrl($photo->getThumbnailPath() ?? $photo->getFilePath()),
                 'album' => [
                     'id' => $photo->getAlbum()->getId(),
                     'title' => $photo->getAlbum()->getTitle(),

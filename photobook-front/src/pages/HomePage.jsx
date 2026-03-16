@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { motion as Motion } from 'framer-motion';
 import galleryService from '../services/galleryService';
+import { API_ASSETS_BASE } from '../services/api';
 import serviceService from '../services/serviceService';
 import reviewService from '../services/reviewService';
 import useUIStore from '../stores/uiStore';
@@ -11,6 +12,15 @@ import {
   mockReviews
 } from '../data/homepageMocks';
 import { CameraIcon } from '@heroicons/react/24/outline';
+
+
+// Helper : construit l'URL absolue d'une photo uploadée sur Symfony
+// filePath = '/uploads/photos/xxx.jpg' → 'http://localhost:8000/uploads/photos/xxx.jpg'
+const getPhotoUrl = (path) => {
+  if (!path) return null;
+  if (path.startsWith('http')) return path;
+  return `${API_ASSETS_BASE}${path}`;
+};
 
 // ─── Animation variants ───────────────────────────────────────────────────────
 const fadeVariants = {
@@ -166,7 +176,7 @@ const HomePage = () => {
   // CORRECTION 9 : useCallback pour éviter les re-renders inutiles
   const handleHeroPhotoClick = useCallback((index) => {
     const images = featuredPhotos.map((p) => ({
-      src:    p.filePath,
+      src:    getPhotoUrl(p.filePath),
       alt:    p.album?.title || '',
       width:  p.width  || 1200,
       height: p.height || 800,
@@ -176,7 +186,7 @@ const HomePage = () => {
 
   const handleGalleryPhotoClick = useCallback((index) => {
     const images = galleryPhotos.map((p) => ({
-      src:    p.filePath,
+      src:    getPhotoUrl(p.filePath),
       alt:    p.album?.title || '',
       width:  p.width  || 1200,
       height: p.height || 800,
@@ -251,7 +261,7 @@ const HomePage = () => {
                     onClick={() => handleHeroPhotoClick(idx)}
                   >
                     <img
-                      src={photo.thumbnailPath || photo.filePath}
+                      src={getPhotoUrl(photo.thumbnailPath || photo.filePath)}
                       alt={photo.album?.title || ''}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                     />
@@ -463,7 +473,7 @@ const HomePage = () => {
                         onClick={() => handleGalleryPhotoClick(idx)}
                       >
                         <img
-                          src={photo.thumbnailPath || photo.filePath}
+                          src={getPhotoUrl(photo.thumbnailPath || photo.filePath)}
                           alt={photo.album?.title || ''}
                           className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-500"
                           // CORRECTION 17 : lazy loading natif pour les images hors viewport
