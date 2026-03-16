@@ -55,8 +55,8 @@ export default function AdminLayout() {
       if (Notification.permission === 'granted') {
         new Notification('SanohPhoto — Nouvelle notification', {
           body: unreadMessages > 0
-            ? \`\${unreadMessages} nouveau(x) message(s) de contact\`
-            : \`\${pendingBookings} réservation(s) en attente\`,
+            ? `${unreadMessages} nouveau(x) message(s) de contact`
+            : `${pendingBookings} réservation(s) en attente`,
           icon: '/favicon.ico',
         });
       }
@@ -203,9 +203,9 @@ export default function AdminLayout() {
             <button
               onClick={() => navigate('/admin/messages')}
               className="relative p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-              title={total > 0 ? \`\${total} notification(s)\` : 'Notifications'}
+              title={total > 0 ? `${total} notification(s)` : 'Notifications'}
             >
-              <BellIcon className={`w-5 h-5 \${total > 0 ? 'text-amber-500' : 'text-gray-500 dark:text-gray-400'}\`} />
+              <BellIcon className={`w-5 h-5 ${total > 0 ? 'text-amber-500' : 'text-gray-500 dark:text-gray-400'}`} />
               {total > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center ring-2 ring-white dark:ring-gray-900">
                   {total > 99 ? '99+' : total}
