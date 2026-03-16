@@ -43,7 +43,7 @@ final class DashboardController extends AbstractController
     #[Route('/kpis', name: 'api_dashboard_kpis', methods: ['GET'])]
     public function getKpis(): JsonResponse
     {
-        // DEBUG_BYPASS: $this->denyAccessUnlessGranted('ROLE_PHOTOGRAPHE');
+        $this->denyAccessUnlessGranted('ROLE_PHOTOGRAPHE');
 
         $today     = new \DateTime('today');
         $thisMonth = new \DateTime('first day of this month');
@@ -103,7 +103,7 @@ final class DashboardController extends AbstractController
     #[Route('/charts', name: 'api_dashboard_charts', methods: ['GET'])]
     public function getCharts(Request $request): JsonResponse
     {
-        // DEBUG_BYPASS: $this->denyAccessUnlessGranted('ROLE_PHOTOGRAPHE');
+        $this->denyAccessUnlessGranted('ROLE_PHOTOGRAPHE');
 
         $days      = min(90, max(7, (int)$request->query->get('days', 30)));
         $startDate = new \DateTime("-{$days} days");
@@ -183,7 +183,7 @@ final class DashboardController extends AbstractController
     #[Route('/activity-feed', name: 'api_dashboard_activity', methods: ['GET'])]
     public function getActivityFeed(Request $request): JsonResponse
     {
-        // DEBUG_BYPASS: $this->denyAccessUnlessGranted('ROLE_PHOTOGRAPHE');
+        $this->denyAccessUnlessGranted('ROLE_PHOTOGRAPHE');
 
         $limit      = min(50, max(10, (int)$request->query->get('limit', 20)));
         $activities = [];
@@ -246,7 +246,7 @@ final class DashboardController extends AbstractController
     #[Route('/upcoming-events', name: 'api_dashboard_upcoming_events', methods: ['GET'])]
     public function getUpcomingEvents(): JsonResponse
     {
-        // DEBUG_BYPASS: $this->denyAccessUnlessGranted('ROLE_PHOTOGRAPHE');
+        $this->denyAccessUnlessGranted('ROLE_PHOTOGRAPHE');
 
         $today    = new \DateTime('today');
         $nextWeek = new \DateTime('+7 days');
@@ -288,7 +288,7 @@ final class DashboardController extends AbstractController
     #[Route('/employee-performance', name: 'api_dashboard_employee_performance', methods: ['GET'])]
     public function getEmployeePerformance(): JsonResponse
     {
-        // DEBUG_BYPASS: $this->denyAccessUnlessGranted('ROLE_ADMIN');
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
         $thisMonth = new \DateTime('first day of this month');
 
@@ -339,7 +339,7 @@ final class DashboardController extends AbstractController
     #[Route('/platform-stats', name: 'api_dashboard_platform_stats', methods: ['GET'])]
     public function getPlatformStats(): JsonResponse
     {
-        // DEBUG_BYPASS: $this->denyAccessUnlessGranted('ROLE_ADMIN');
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
         return $this->json([
             'totalClients' => (int) $this->userRepository->createQueryBuilder('u')
