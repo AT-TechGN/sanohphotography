@@ -5,7 +5,6 @@ import { motion as Motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import galleryService from '../services/galleryService';
 import { API_ASSETS_BASE } from '../services/api';
-import { buildSrcSet, defaultSizesForGallery } from '../utils/imageHelpers';
 import serviceService from '../services/serviceService';
 import Loading from '../components/common/Loading';
 import useUIStore from '../stores/uiStore';
@@ -77,7 +76,11 @@ const GalleryPage = () => {
 
   const handlePhotoClick = (index) => {
     const images = photos.map((photo) => ({
-      src: `${API_ASSETS_BASE}${photo.filePath}`,
+      // filePath est déjà une URL absolue (buildUrl() côté backend)
+      // on évite le double préfixe API_ASSETS_BASE
+      src: photo.filePath?.startsWith('http')
+        ? photo.filePath
+        : `${API_ASSETS_BASE}${photo.filePath}`,
       alt: photo.album?.title || 'Photo',
       width: photo.width || 1920,
       height: photo.height || 1080,
@@ -226,9 +229,9 @@ const GalleryPage = () => {
                   className="relative aspect-square overflow-hidden rounded-xl shadow-lg group cursor-pointer"
                 >
                   <img
-                    src={`${API_ASSETS_BASE}${photo.thumbnailPath || photo.filePath}`}
-                    srcSet={buildSrcSet(photo, API_ASSETS_BASE)}
-                    sizes={defaultSizesForGallery()}
+                    src={photo.thumbnailPath?.startsWith('http')
+                      ? photo.thumbnailPath
+                      : `${API_ASSETS_BASE}${photo.thumbnailPath || photo.filePath}`}
                     alt={photo.album?.title || 'Photo'}
                     loading="lazy"
                     decoding="async"
