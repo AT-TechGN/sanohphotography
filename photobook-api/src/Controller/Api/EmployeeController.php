@@ -265,7 +265,7 @@ final class EmployeeController extends AbstractController
         $qb = $this->blockedSlotRepository->createQueryBuilder('bs')
             ->where('bs.employee = :employee')
             ->setParameter('employee', $employee)
-            ->orderBy('bs.startDateTime', 'ASC');
+            ->orderBy('bs.startDatetime', 'ASC');
 
         $blockedSlots = $qb->getQuery()->getResult();
 
@@ -295,8 +295,8 @@ final class EmployeeController extends AbstractController
 
         $blockedSlot = new BlockedSlot();
         $blockedSlot->setEmployee($employee);
-        $blockedSlot->setStartDateTime($start);
-        $blockedSlot->setEndDateTime($end);
+        $blockedSlot->setStartDatetime($start);
+        $blockedSlot->setEndDatetime($end);
         $blockedSlot->setReason($data['reason']);
 
         $this->em->persist($blockedSlot);
@@ -340,7 +340,7 @@ final class EmployeeController extends AbstractController
         );
 
         $blockedSlots = $this->blockedSlotRepository->createQueryBuilder('bs')
-            ->where('bs.employee = :e AND bs.startDateTime <= :end AND bs.endDateTime >= :start')
+            ->where('bs.employee = :e AND bs.startDatetime <= :end AND bs.endDatetime >= :start')
             ->setParameter('e', $employee)
             ->setParameter('start', $startDate)
             ->setParameter('end', $endDate)
@@ -399,8 +399,8 @@ final class EmployeeController extends AbstractController
         return [
             'id'            => $s->getId(),
             'reason'        => $s->getReason(),
-            'startDateTime' => $s->getStartDateTime()?->format('c'),
-            'endDateTime'   => $s->getEndDateTime()?->format('c'),
+            'startDateTime' => $s->getStartDatetime()?->format('c'),
+            'endDateTime'   => $s->getEndDatetime()?->format('c'),
         ];
     }
 }
