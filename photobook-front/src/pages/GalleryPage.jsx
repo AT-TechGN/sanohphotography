@@ -21,6 +21,7 @@ const GalleryPage = () => {
     page: 1,
   });
   const [loading, setLoading] = useState(true);
+  const [serverError, setServerError] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const { openLightbox } = useUIStore();
 
@@ -51,11 +52,15 @@ const GalleryPage = () => {
   const loadPhotos = async () => {
     try {
       setLoading(true);
+      setServerError(false);
       const data = await galleryService.getPhotos(filters);
-      setPhotos(data.data);
+      setPhotos(data.data ?? []);
       setPagination(data.pagination);
     } catch (error) {
       console.error('Erreur chargement photos:', error);
+      if (error.code === 'ERR_NETWORK' || error.code === 'ERR_CONNECTION_REFUSED') {
+        setServerError(true);
+      }
     } finally {
       setLoading(false);
     }
@@ -176,6 +181,23 @@ const GalleryPage = () => {
         {/* Grille de photos */}
         {loading ? (
           <Loading />
+        ) : serverError ? (
+          <div className="text-center py-20">
+            <div className="w-20 h-20 mx-auto mb-6 bg-red-50 dark:bg-red-900/20 rounded-full flex items-center justify-center">
+              <PhotoIcon className="w-10 h-10 text-red-400" />
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Serveur non disponible</h3>
+            <p className="text-gray-500 dark:text-gray-400 mb-6 max-w-sm mx-auto">
+              Le serveur est temporairement hors ligne. Vérifiez que Symfony est bien démarré.
+            </p>
+            <div className="bg-gray-900 text-amber-400 rounded-xl p-4 max-w-sm mx-auto text-left text-sm font-mono mb-6">
+              <p className="text-gray-500 text-xs mb-2"># Démarrer le serveur</p>
+              <p>symfony server:start</p>
+            </div>
+            <button onClick={loadPhotos} className="inline-flex items-center gap-2 px-5 py-2.5 bg-amber-500 text-white rounded-xl font-medium hover:bg-amber-400 transition-colors">
+              Réessayer
+            </button>
+          </div>
         ) : photos.length === 0 ? (
           <div className="text-center py-16">
             <div className="w-20 h-20 mx-auto mb-4 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center">
