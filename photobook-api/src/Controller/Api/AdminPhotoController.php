@@ -85,10 +85,12 @@ class AdminPhotoController extends AbstractController
             // Vich upload
             $this->uploader->upload($photo, 'imageFile'); // Assumes Vich mapping 'imageFile'
 
-            // Metadata (requires intervention)
-            $image = \ Intervention\Image\ImageManagerStatic::make($file);
-            $photo->setWidth($image->width());
-            $photo->setHeight($image->height());
+            // Metadata dimensions (si intervention/image installé)
+            if (class_exists(\Intervention\Image\ImageManagerStatic::class)) {
+                $image = \Intervention\Image\ImageManagerStatic::make($file->getPathname());
+                $photo->setWidth($image->width());
+                $photo->setHeight($image->height());
+            }
 
             $errors = $this->validator->validate($photo);
             if (count($errors) > 0) {
