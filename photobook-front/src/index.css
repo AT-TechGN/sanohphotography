@@ -24,8 +24,10 @@
   }
 
   body {
-    @apply bg-dark text-cream font-sans;
+    @apply font-sans;
     overflow-x: hidden;
+    /* Le fond est géré par chaque page/layout avec dark: variants */
+    /* bg-dark était forcé et cassait le dark mode des pages admin */
   }
 }
 

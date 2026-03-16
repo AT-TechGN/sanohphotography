@@ -199,10 +199,8 @@ const EmployeesManagement = () => {
           onClick={() => { resetForm(); setShowForm(!showForm); }}
           className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-amber-600 to-orange-600 text-white rounded-xl font-medium hover:shadow-lg transition-all"
         >
-          <span className="inline-flex items-center gap-2">
-            {showForm ? <XCircleIcon className="w-5 h-5" /> : <PlusIcon className="w-5 h-5" />}
+          {showForm ? <XCircleIcon className="w-5 h-5" /> : <PlusIcon className="w-5 h-5" />}
             {showForm ? 'Annuler' : 'Nouvel employé'}
-          </span>
         </button>
       </div>
 

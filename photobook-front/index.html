@@ -1,6 +1,17 @@
 <!doctype html>
 <html lang="en">
   <head>
+  <script>
+    // Appliquer dark mode avant React pour éviter le flash
+    (function() {
+      try {
+        var dark = localStorage.getItem('darkMode');
+        if (dark === 'true' || (dark === null && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+          document.documentElement.classList.add('dark');
+        }
+      } catch(e) {}
+    })();
+  </script>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />

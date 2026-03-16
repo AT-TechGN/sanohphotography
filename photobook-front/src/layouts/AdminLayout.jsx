@@ -145,7 +145,7 @@ export default function AdminLayout() {
       </aside>
 
       {/* ── Zone principale ────────────────────────────────────────────── */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-gray-50 dark:bg-gray-900">
 
         {/* Header */}
         <header className="flex-shrink-0 h-14 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 flex items-center px-4 gap-3 z-30">
@@ -178,7 +178,7 @@ export default function AdminLayout() {
         </header>
 
         {/* Contenu scrollable */}
-        <main className="flex-1 overflow-y-auto overflow-x-hidden pb-16 lg:pb-0">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden pb-16 lg:pb-0 bg-gray-50 dark:bg-gray-900">
           <Notification />
           <Outlet />
         </main>
