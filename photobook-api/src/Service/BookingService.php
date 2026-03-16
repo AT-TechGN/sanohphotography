@@ -12,158 +12,183 @@ use App\Repository\EmployeeRepository;
 
 /**
  * Service métier pour la gestion des réservations
- * Calcul des créneaux disponibles selon le cahier des charges
+ *
+ * CORRECTIONS :
+ * ─────────────────────────────────────────────────────────────────────────
+ * 1. isEmployeeAvailable() utilisait b.scheduledDate et b.scheduledTime en DQL
+ *    mais l'entité Booking a bookingDate et startTime → DQL exception → 500.
+ *
+ * 2. assignEmployee() appelait $booking->getScheduledTime() et
+ *    $booking->getScheduledDate() → méthodes inexistantes sur l'entité.
+ *    Corrigé → getStartTime() et getBookingDate().
+ *
+ * 3. isEmployeeAvailable() appelait $booking->getScheduledTime() →
+ *    corrigé → getStartTime().
+ * ─────────────────────────────────────────────────────────────────────────
  */
 class BookingService
 {
     public function __construct(
-        private BookingRepository $bookingRepository,
+        private BookingRepository      $bookingRepository,
         private AvailabilityRepository $availabilityRepository,
-        private BlockedSlotRepository $blockedSlotRepository,
-        private EmployeeRepository $employeeRepository
+        private BlockedSlotRepository  $blockedSlotRepository,
+        private EmployeeRepository     $employeeRepository
     ) {}
 
     /**
-     * Calculer les créneaux disponibles pour un service à une date donnée
-     * 
-     * @param Service $service Le service à réserver
-     * @param \DateTime $date La date souhaitée
-     * @return array Liste des créneaux disponibles avec employé assignable
+     * Calculer les créneaux disponibles pour un service à une date donnée.
      */
     public function getAvailableSlots(Service $service, \DateTime $date): array
     {
-        $slots = [];
+        $slots    = [];
         $duration = $service->getDurationMin();
-        
-        // Horaires d'ouverture (à configurer selon le studio)
+
         $openingTime = new \DateTime($date->format('Y-m-d') . ' 09:00:00');
         $closingTime = new \DateTime($date->format('Y-m-d') . ' 18:00:00');
-        
+
         $currentSlot = clone $openingTime;
-        
+
         while ($currentSlot < $closingTime) {
             $slotEnd = clone $currentSlot;
             $slotEnd->modify("+{$duration} minutes");
-            
+
             if ($slotEnd > $closingTime) {
                 break;
             }
-            
-            // Vérifier si un employé est disponible pour ce créneau
+
             $availableEmployee = $this->findAvailableEmployee($currentSlot, $slotEnd, $date);
-            
+
             if ($availableEmployee) {
                 $slots[] = [
                     'startTime' => $currentSlot->format('H:i'),
-                    'endTime' => $slotEnd->format('H:i'),
-                    'datetime' => clone $currentSlot,
-                    'employee' => $availableEmployee,
-                    'available' => true
+                    'endTime'   => $slotEnd->format('H:i'),
+                    'datetime'  => clone $currentSlot,
+                    'employee'  => [
+                        'id'        => $availableEmployee->getId(),
+                        'firstName' => $availableEmployee->getUser()->getFirstName(),
+                        'lastName'  => $availableEmployee->getUser()->getLastName(),
+                    ],
+                    'available' => true,
                 ];
             }
-            
-            // Incrément de 30 minutes entre chaque créneau
+
             $currentSlot->modify('+30 minutes');
         }
-        
+
         return $slots;
     }
 
     /**
-     * Trouver un employé disponible pour un créneau donné
+     * Trouver un employé disponible pour un créneau.
      */
     private function findAvailableEmployee(\DateTime $startTime, \DateTime $endTime, \DateTime $date): ?Employee
     {
         $employees = $this->employeeRepository->findBy(['isActive' => true]);
-        
+
         foreach ($employees as $employee) {
             if ($this->isEmployeeAvailable($employee, $startTime, $endTime, $date)) {
                 return $employee;
             }
         }
-        
+
         return null;
     }
 
     /**
-     * Vérifier si un employé est disponible
+     * Vérifier si un employé est disponible sur un créneau.
      */
-    private function isEmployeeAvailable(Employee $employee, \DateTime $startTime, \DateTime $endTime, \DateTime $date): bool
-    {
-        // 1. Vérifier les disponibilités récurrentes (jours/heures de travail)
-        $dayOfWeek = (int) $date->format('N'); // 1 = lundi, 7 = dimanche
+    private function isEmployeeAvailable(
+        Employee  $employee,
+        \DateTime $startTime,
+        \DateTime $endTime,
+        \DateTime $date
+    ): bool {
+        // 1. Disponibilités récurrentes (jours/heures de travail)
+        $dayOfWeek = (int) $date->format('N');
         $hasRecurringAvailability = false;
-        
+
         foreach ($employee->getAvailabilities() as $availability) {
             if ($availability->getDayOfWeek() === $dayOfWeek) {
                 $availStart = \DateTime::createFromFormat('H:i:s', $availability->getStartTime()->format('H:i:s'));
-                $availEnd = \DateTime::createFromFormat('H:i:s', $availability->getEndTime()->format('H:i:s'));
-                $slotStart = \DateTime::createFromFormat('H:i:s', $startTime->format('H:i:s'));
-                $slotEnd = \DateTime::createFromFormat('H:i:s', $endTime->format('H:i:s'));
-                
+                $availEnd   = \DateTime::createFromFormat('H:i:s', $availability->getEndTime()->format('H:i:s'));
+                $slotStart  = \DateTime::createFromFormat('H:i:s', $startTime->format('H:i:s'));
+                $slotEnd    = \DateTime::createFromFormat('H:i:s', $endTime->format('H:i:s'));
+
                 if ($slotStart >= $availStart && $slotEnd <= $availEnd) {
                     $hasRecurringAvailability = true;
                     break;
                 }
             }
         }
-        
+
+        // Si aucune disponibilité récurrente configurée → on autorise
+        // (évite de bloquer tous les créneaux si l'employé n'a pas encore
+        // configuré ses horaires)
+        if (!$hasRecurringAvailability && $employee->getAvailabilities()->isEmpty()) {
+            $hasRecurringAvailability = true;
+        }
+
         if (!$hasRecurringAvailability) {
             return false;
         }
-        
-        // 2. Vérifier les congés/absences (slots bloqués)
+
+        // 2. Congés/absences (BlockedSlots)
         $blockedSlots = $this->blockedSlotRepository->createQueryBuilder('bs')
             ->where('bs.employee = :employee')
             ->andWhere('bs.startDateTime <= :endTime')
             ->andWhere('bs.endDateTime >= :startTime')
             ->setParameter('employee', $employee)
             ->setParameter('startTime', $startTime)
-            ->setParameter('endTime', $endTime)
+            ->setParameter('endTime',   $endTime)
             ->getQuery()
             ->getResult();
-        
+
         if (count($blockedSlots) > 0) {
             return false;
         }
-        
-        // 3. Vérifier les réservations existantes
+
+        // 3. Réservations existantes
+        // CORRECTION : b.scheduledDate → b.bookingDate, b.scheduledTime → b.startTime
         $existingBookings = $this->bookingRepository->createQueryBuilder('b')
-            ->where('b.assignedEmployee = :employee')
-            ->andWhere('b.scheduledDate = :date')
-            ->andWhere('b.scheduledTime <= :endTime')
-            ->andWhere('b.status NOT IN (:cancelledStatus)')
-            ->setParameter('employee', $employee)
-            ->setParameter('date', $date->format('Y-m-d'))
-            ->setParameter('endTime', $endTime->format('H:i:s'))
-            ->setParameter('cancelledStatus', ['cancelled'])
+            ->where('b.employee = :employee')
+            ->andWhere('b.bookingDate = :date')
+            ->andWhere('b.startTime <= :endTime')
+            ->andWhere('b.status NOT IN (:cancelled)')
+            ->setParameter('employee',  $employee)
+            ->setParameter('date',      $date->format('Y-m-d'))
+            ->setParameter('endTime',   $endTime->format('H:i:s'))
+            ->setParameter('cancelled', ['cancelled'])
             ->getQuery()
             ->getResult();
-        
+
         foreach ($existingBookings as $booking) {
-            $bookingStart = $booking->getScheduledTime();
-            $bookingEnd = clone $bookingStart;
+            // CORRECTION : getScheduledTime() → getStartTime()
+            $bookingStart = $booking->getStartTime();
+            $bookingEnd   = clone $bookingStart;
             $bookingEnd->modify('+' . $booking->getService()->getDurationMin() . ' minutes');
-            
-            // Vérifier s'il y a chevauchement
+
             if ($startTime < $bookingEnd && $endTime > $bookingStart) {
                 return false;
             }
         }
-        
+
         return true;
     }
 
     /**
-     * Assigner automatiquement un employé à une réservation
+     * Assigner automatiquement un employé disponible à une réservation.
+     *
+     * CORRECTION : getScheduledTime() → getStartTime()
+     *              getScheduledDate() → getBookingDate()
      */
     public function assignEmployee(Booking $booking): ?Employee
     {
-        $startTime = $booking->getScheduledTime();
-        $duration = $booking->getService()->getDurationMin();
-        $endTime = clone $startTime;
+        // CORRECTION : utilise les vrais getters de l'entité Booking
+        $startTime = $booking->getStartTime();
+        $duration  = $booking->getService()->getDurationMin();
+        $endTime   = clone $startTime;
         $endTime->modify("+{$duration} minutes");
-        
-        return $this->findAvailableEmployee($startTime, $endTime, $booking->getScheduledDate());
+
+        return $this->findAvailableEmployee($startTime, $endTime, $booking->getBookingDate());
     }
 }
