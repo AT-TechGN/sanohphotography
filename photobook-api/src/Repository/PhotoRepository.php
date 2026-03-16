@@ -82,9 +82,26 @@ class PhotoRepository extends ServiceEntityRepository
 
     public function findFeaturedPhotos(int $limit = 10): array
     {
-        return $this->createQueryBuilder('p')
+        // Priorité aux photos marquées isFeatured, sinon toutes photos d'albums publics
+        $featured = $this->createQueryBuilder('p')
+            ->join('p.album', 'a')
             ->where('p.isFeatured = true')
+            ->andWhere('a.isPublic = true')
             ->orderBy('p.sortOrder', 'ASC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+
+        if (count($featured) >= $limit) {
+            return $featured;
+        }
+
+        // Fallback : photos d'albums publics si pas assez de featured
+        return $this->createQueryBuilder('p')
+            ->join('p.album', 'a')
+            ->where('a.isPublic = true')
+            ->orderBy('p.isFeatured', 'DESC')
+            ->addOrderBy('p.id', 'DESC')
             ->setMaxResults($limit)
             ->getQuery()
             ->getResult();

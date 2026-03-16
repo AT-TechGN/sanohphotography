@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import dashboardService from '../services/dashboardService';
 import useAuthStore from '../stores/authStore';
@@ -28,21 +28,8 @@ const AdminDashboard = () => {
   const { user } = useAuthStore();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const hasAdminRole = user?.roles?.some(role =>
-      role === 'ROLE_ADMIN' || role === 'ROLE_PHOTOGRAPHE' || role === 'ROLE_EMPLOYEE'
-    );
-
-    if (!hasAdminRole) {
-      setError('Vous n\'avez pas accès à cette section. Veuillez contacter l\'administrateur.');
-      setLoading(false);
-      return;
-    }
-
-    loadData();
-  }, [timeRange, user, loadData]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const loadData = async () => {
+  // loadData enveloppé dans useCallback — deps stables, pas de re-création inutile
+  const loadData = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -76,7 +63,21 @@ const AdminDashboard = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [timeRange, navigate]);
+
+  useEffect(() => {
+    const hasAdminRole = user?.roles?.some(role =>
+      role === 'ROLE_ADMIN' || role === 'ROLE_PHOTOGRAPHE' || role === 'ROLE_EMPLOYEE'
+    );
+
+    if (!hasAdminRole) {
+      setError('Vous n\'avez pas accès à cette section. Veuillez contacter l\'administrateur.');
+      setLoading(false);
+      return;
+    }
+
+    loadData();
+  }, [timeRange, user, loadData]);
 
   const COLORS = ['#9333ea', '#ec4899', '#f97316', '#06b6d4', '#10b981', '#f59e0b'];
 

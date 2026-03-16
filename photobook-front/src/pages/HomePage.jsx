@@ -48,6 +48,11 @@ const HomePage = () => {
   // CORRECTION 1 : showError extrait du store (était appelé mais jamais importé proprement)
   const { openLightbox, showError } = useUIStore();
 
+  // showErrorRef stable — évite de mettre showError dans les deps des useEffect
+  // (showError vient de Zustand et ne change jamais, mais ESLint ne le sait pas)
+  const showErrorRef = useRef(showError);
+  useEffect(() => { showErrorRef.current = showError; }, [showError]);
+
   // ── Fetch hero photos ───────────────────────────────────────────────────────
   useEffect(() => {
     const fetchHero = async () => {
@@ -60,7 +65,7 @@ const HomePage = () => {
       } catch (e) {
         console.error('Hero fetch error:', e);
         setHeroError(true);
-        showError?.('Erreur chargement hero photos');
+        showErrorRef.current?.('Erreur chargement hero photos');
       } finally {
         setLoadingHero(false);
       }
@@ -78,7 +83,7 @@ const HomePage = () => {
       } catch (e) {
         console.error('Gallery fetch error:', e);
         setGalleryError(true);
-        showError?.('Erreur chargement galerie');
+        showErrorRef.current?.('Erreur chargement galerie');
       } finally {
         setGalleryLoading(false);
       }

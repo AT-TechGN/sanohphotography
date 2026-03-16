@@ -88,7 +88,7 @@ export default function AdminLayout() {
   useEffect(() => {
     const t = setTimeout(() => setSidebarOpen(false), 0);
     return () => clearTimeout(t);
-  }, [location.pathname]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
 
   // Bloquer le scroll body quand sidebar ouverte sur mobile
   useEffect(() => {
