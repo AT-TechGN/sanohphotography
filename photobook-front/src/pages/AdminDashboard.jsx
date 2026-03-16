@@ -361,7 +361,7 @@ const AdminDashboard = () => {
         </Link>
       </div>
 
-    </div> {/* CORRECTION 11 : </div> fermant du wrapper principal manquant */}
+    </div>
   );
 };
 
