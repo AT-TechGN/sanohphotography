@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import photoService from '../../services/photoService';
 import galleryService from '../../services/galleryService';
+import { API_ASSETS_BASE } from '../../services/api';
 import useUIStore from '../../stores/uiStore';
 import Loading from '../../components/common/Loading';
 import {
@@ -43,7 +44,7 @@ const UploadButton = ({ uploading, onFileChange }) => (
 const PhotoCard = ({ photo, onToggleFeatured, onDelete }) => (
   <div className="group relative aspect-square bg-gray-100 dark:bg-gray-700 rounded-xl overflow-hidden">
     <img
-      src={photo.filePath} alt={photo.originalFilename || 'Photo'}
+      src={photo.filePath?.startsWith('http') ? photo.filePath : `${API_ASSETS_BASE}${photo.filePath}`} alt={photo.originalFilename || 'Photo'}
       className="w-full h-full object-cover" loading="lazy"
       onError={(e) => { e.currentTarget.src = 'https://via.placeholder.com/300?text=Image'; }}
     />

@@ -222,10 +222,15 @@ final class PhotoController extends AbstractController
         $albumId = $request->query->get('albumId');
         
         if ($albumId) {
-            $album = $this->albumRepository->find($albumId);
-            $photos = $album ? $album->getPhotos()->toArray() : [];
+            // CORRECTION : utilise le repository (requête fraîche) au lieu de
+            // $album->getPhotos()->toArray() qui utilise le cache Doctrine
+            // et peut ne pas inclure les photos venantes d'être insérées
+            $photos = $this->photoRepository->findBy(
+                ['album' => $albumId],
+                ['sortOrder' => 'ASC', 'id' => 'DESC']
+            );
         } else {
-            $photos = $this->photoRepository->findAll();
+            $photos = $this->photoRepository->findBy([], ['id' => 'DESC']);
         }
 
         $data = array_map(function($photo) {
@@ -320,8 +325,7 @@ final class PhotoController extends AbstractController
     public function addPhotos(Request $request): Response
     {
         $albumId = $request->request->get('albumId');
-        $files = $request->files->get('files');
-        
+
         if (!$albumId) {
             return $this->json(['error' => 'Album ID requis'], 400);
         }
@@ -331,44 +335,76 @@ final class PhotoController extends AbstractController
             return $this->json(['error' => 'Album non trouvé'], 404);
         }
 
-        $uploadedPhotos = [];
-        
-        if ($files) {
-            $uploadDir = $this->getParameter('kernel.project_dir') . '/public/uploads/photos/';
-            $thumbDir = $this->getParameter('kernel.project_dir') . '/public/uploads/thumbnails/';
-            
-            foreach ($files as $file) {
-                $originalFilename = $file->getClientOriginalName();
-                $newFilename = uniqid() . '.' . $file->getExtension();
-                
-                // Déplacer le fichier
-                $file->move($uploadDir, $newFilename);
-                
-                // Créer la photo en base
-                $photo = new Photo();
-                $photo->setFilePath('/uploads/photos/' . $newFilename);
-                $photo->setThumbnailPath('/uploads/thumbnails/' . $newFilename);
-                $photo->setOriginalFilename($originalFilename);
-                $photo->setFileSize($file->getSize());
-                $photo->setIsFeatured(false);
-                $photo->setSortOrder($album->getPhotos()->count());
-                $photo->setTakenAt(new \DateTime());
-                $photo->setAlbum($album);
-                
-                $this->entityManager->persist($photo);
-                
-                $uploadedPhotos[] = [
-                    'id' => $photo->getId(),
-                    'filename' => $originalFilename,
-                ];
-            }
-            
-            $this->entityManager->flush();
+        // BUG CORRIGÉ 1 : Symfony retourne UploadedFile OU tableau selon le nombre de fichiers
+        // On normalise toujours en tableau
+        $rawFiles = $request->files->get('files');
+        if (empty($rawFiles)) {
+            return $this->json(['error' => 'Aucun fichier reçu'], 400);
         }
+        $files = is_array($rawFiles) ? $rawFiles : [$rawFiles];
+
+        $uploadDir = $this->getParameter('kernel.project_dir') . '/public/uploads/photos/';
+
+        // Créer le dossier si nécessaire
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0755, true);
+        }
+
+        $uploadedPhotos = [];
+        $sortOffset = $album->getPhotos()->count();
+
+        foreach ($files as $file) {
+            // BUG CORRIGÉ 2 : lire la taille AVANT move() car après move() getSize() = 0
+            $fileSize = (string) $file->getSize();
+            $originalFilename = $file->getClientOriginalName();
+
+            // BUG CORRIGÉ 3 : guessExtension() utilise le MIME type (plus fiable que getExtension())
+            $extension = $file->guessExtension()
+                ?? $file->getClientOriginalExtension()
+                ?? 'jpg';
+
+            $newFilename = uniqid('photo_', true) . '.' . $extension;
+
+            try {
+                $file->move($uploadDir, $newFilename);
+            } catch (\Exception $e) {
+                continue; // Passer au fichier suivant si erreur
+            }
+
+            $photo = new Photo();
+            $photo->setFilePath('/uploads/photos/' . $newFilename);
+            $photo->setThumbnailPath('/uploads/photos/' . $newFilename); // même chemin (pas de miniature séparée)
+            $photo->setOriginalFilename($originalFilename);
+            $photo->setFileSize($fileSize);
+            $photo->setIsFeatured(false);
+            $photo->setSortOrder($sortOffset + count($uploadedPhotos));
+            $photo->setTakenAt(new \DateTime());
+            $photo->setAlbum($album);
+
+            $this->entityManager->persist($photo);
+            $uploadedPhotos[] = $photo;
+        }
+
+        $this->entityManager->flush();
+
+        // Retourner les photos complètes avec tous les champs attendus par le frontend
+        $data = array_map(function(Photo $p) {
+            return [
+                'id'               => $p->getId(),
+                'filePath'         => $p->getFilePath(),
+                'thumbnailPath'    => $p->getThumbnailPath(),
+                'originalFilename' => $p->getOriginalFilename(),
+                'fileSize'         => $p->getFileSize(),
+                'isFeatured'       => $p->isFeatured(),
+                'sortOrder'        => $p->getSortOrder(),
+                'takenAt'          => $p->getTakenAt()?->format('Y-m-d H:i:s'),
+                'album'            => ['id' => $p->getAlbum()->getId(), 'title' => $p->getAlbum()->getTitle()],
+            ];
+        }, $uploadedPhotos);
 
         return $this->json([
             'message' => count($uploadedPhotos) . ' photo(s) ajoutée(s)',
-            'photos' => $uploadedPhotos,
+            'photos'  => $data,
         ], 201);
     }
 
