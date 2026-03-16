@@ -432,7 +432,7 @@ final class BookingController extends AbstractController
         }
         $dql .= ' ORDER BY b.bookingDate DESC, b.startTime DESC';
 
-        $query = $this->bookingRepository->getEntityManager()->createQuery($dql);
+        $query = $this->em->createQuery($dql);
         foreach ($params as $key => $val) {
             $query->setParameter($key, $val);
         }
@@ -504,43 +504,69 @@ final class BookingController extends AbstractController
 
     private function serializeBooking(Booking $b): array
     {
-        $employee = $b->getEmployee();
-        $client   = $b->getClient();
-        $service  = $b->getService();
+        try { $employee = $b->getEmployee(); } catch (\Throwable) { $employee = null; }
+        try { $client   = $b->getClient();   } catch (\Throwable) { $client   = null; }
+        try { $service  = $b->getService();  } catch (\Throwable) { $service  = null; }
 
-        return [
+        $data = [
             'id'            => $b->getId(),
-            'status'        => $b->getStatus(),
-            // CORRECTION : expose scheduledDate/scheduledTime comme alias des vrais champs
-            'scheduledDate' => $b->getBookingDate()?->format('Y-m-d'),
-            'scheduledTime' => $b->getStartTime()?->format('H:i'),
-            'bookingDate'   => $b->getBookingDate()?->format('Y-m-d'),
-            'startTime'     => $b->getStartTime()?->format('H:i'),
-            'endTime'       => $b->getEndTime()?->format('H:i'),
+            'status'        => $b->getStatus() ?? 'pending',
+            'scheduledDate' => null,
+            'scheduledTime' => null,
+            'bookingDate'   => null,
+            'startTime'     => null,
+            'endTime'       => null,
             'totalPrice'    => $b->getTotalPrice(),
             'notes'         => $b->getClientNotes(),
-            'createdAt'     => $b->getCreatedAt()?->format('c'),
-            'service'       => $service ? [
-                'id'          => $service->getId(),
-                'name'        => $service->getName(),
-                'durationMin' => $service->getDurationMin(),
-                'basePrice'   => $service->getBasePrice(),
-                'category'    => $service->getCategory(),
-            ] : null,
-            'client' => $client ? [
-                'id'        => $client->getId(),
-                'firstName' => $client->getFirstName(),
-                'lastName'  => $client->getLastName(),
-                'email'     => $client->getEmail(),
-                'phone'     => $client->getPhone(),
-            ] : null,
-            // Employee lié à User — protection complète contre les nulls
-            'assignedEmployee' => $employee ? [
-                'id'        => $employee->getId(),
-                'firstName' => $employee->getUser()?->getFirstName() ?? '',
-                'lastName'  => $employee->getUser()?->getLastName() ?? '',
-                'position'  => $employee->getPosition(),
-            ] : null,
+            'createdAt'     => null,
+            'service'       => null,
+            'client'        => null,
+            'assignedEmployee' => null,
         ];
+
+        try { $data['scheduledDate'] = $b->getBookingDate()?->format('Y-m-d'); } catch (\Throwable) {}
+        try { $data['scheduledTime'] = $b->getStartTime()?->format('H:i');     } catch (\Throwable) {}
+        try { $data['bookingDate']   = $b->getBookingDate()?->format('Y-m-d'); } catch (\Throwable) {}
+        try { $data['startTime']     = $b->getStartTime()?->format('H:i');     } catch (\Throwable) {}
+        try { $data['endTime']       = $b->getEndTime()?->format('H:i');       } catch (\Throwable) {}
+        try { $data['createdAt']     = $b->getCreatedAt()?->format('c');       } catch (\Throwable) {}
+
+        if ($service) {
+            try {
+                $data['service'] = [
+                    'id'          => $service->getId(),
+                    'name'        => $service->getName(),
+                    'durationMin' => $service->getDurationMin(),
+                    'basePrice'   => $service->getBasePrice(),
+                    'category'    => $service->getCategory(),
+                ];
+            } catch (\Throwable) {}
+        }
+
+        if ($client) {
+            try {
+                $data['client'] = [
+                    'id'        => $client->getId(),
+                    'firstName' => $client->getFirstName(),
+                    'lastName'  => $client->getLastName(),
+                    'email'     => $client->getEmail(),
+                    'phone'     => $client->getPhone(),
+                ];
+            } catch (\Throwable) {}
+        }
+
+        if ($employee) {
+            try {
+                $user = $employee->getUser();
+                $data['assignedEmployee'] = [
+                    'id'        => $employee->getId(),
+                    'firstName' => $user?->getFirstName() ?? '',
+                    'lastName'  => $user?->getLastName()  ?? '',
+                    'position'  => $employee->getPosition(),
+                ];
+            } catch (\Throwable) {}
+        }
+
+        return $data;
     }
 }
