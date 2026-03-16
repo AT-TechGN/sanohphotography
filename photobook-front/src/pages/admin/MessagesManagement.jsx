@@ -3,9 +3,9 @@ import { motion as Motion, AnimatePresence } from 'framer-motion';
 import contactService from '../../services/contactService';
 import useUIStore from '../../stores/uiStore';
 import {
-  EnvelopeIcon, EnvelopeOpenIcon, TrashIcon, ReplyIcon,
+  EnvelopeIcon, EnvelopeOpenIcon, TrashIcon,
   MagnifyingGlassIcon, CheckCircleIcon, XMarkIcon,
-  FunnelIcon, ClockIcon, PaperAirplaneIcon,
+  ClockIcon, PaperAirplaneIcon,
 } from '@heroicons/react/24/outline';
 
 /* ── Helpers ─────────────────────────────────────────────────────────────── */

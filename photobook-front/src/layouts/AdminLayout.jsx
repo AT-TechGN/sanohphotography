@@ -85,9 +85,13 @@ export default function AdminLayout() {
   }, []);
 
   // Fermer la sidebar au changement de route
-  useEffect(() => {
-    setSidebarOpen(false);
-  }, [location.pathname]);
+  // Note: on utilise useEffect avec flushSync pour éviter le warning cascading renders
+  // Alternative : ref pour tracker le pathname précédent
+  const prevPathnameRef = useRef(location.pathname);
+  if (prevPathnameRef.current !== location.pathname) {
+    prevPathnameRef.current = location.pathname;
+    if (sidebarOpen) setSidebarOpen(false);
+  }
 
   // Bloquer le scroll body quand sidebar ouverte sur mobile
   useEffect(() => {
@@ -146,7 +150,7 @@ export default function AdminLayout() {
             Menu
           </p>
           <div className="space-y-0.5">
-            {visibleMenu.map(({ path, label, Icon, exact }) => {
+            {visibleMenu.map(({ path, label, Icon: MenuIcon, exact }) => {
               const active = isActive(path, exact);
               return (
                 <Link
@@ -159,7 +163,7 @@ export default function AdminLayout() {
                       : 'text-gray-400 hover:bg-white/5 hover:text-white',
                   ].join(' ')}
                 >
-                  <Icon className="w-4 h-4 flex-shrink-0" />
+                  <MenuIcon className="w-4 h-4 flex-shrink-0" />
                   <span className="truncate">{label}</span>
                 </Link>
               );
@@ -268,7 +272,7 @@ export default function AdminLayout() {
           className="grid"
           style={{ gridTemplateColumns: `repeat(${BOTTOM_TABS.length}, 1fr)` }}
         >
-          {BOTTOM_TABS.map(({ path, label, Icon, exact }) => {
+          {BOTTOM_TABS.map(({ path, label, Icon: TabIcon, exact }) => {
             const active = isActive(path, exact);
             return (
               <Link
@@ -280,7 +284,7 @@ export default function AdminLayout() {
                 ].join(' ')}
               >
                 <div className={`p-1.5 rounded-xl transition-colors ${active ? 'bg-amber-50 dark:bg-amber-500/10' : ''}`}>
-                  <Icon className="w-5 h-5" />
+                  <TabIcon className="w-5 h-5" />
                 </div>
                 <span className={`text-[10px] leading-none ${active ? 'font-semibold' : 'font-medium'}`}>
                   {label}
