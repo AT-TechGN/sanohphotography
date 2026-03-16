@@ -2,12 +2,14 @@ import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import useAuthStore from '../stores/authStore';
 import Notification from '../components/common/Notification';
+import { useEffect, useRef } from 'react';
 import {
   ChartBarIcon, CalendarDaysIcon, PhotoIcon,
   CameraIcon, StarIcon, UsersIcon, DocumentTextIcon,
   ArrowLeftOnRectangleIcon, Bars3Icon, XMarkIcon,
-  BellIcon, HomeIcon, UserCircleIcon,
+  BellIcon, HomeIcon, UserCircleIcon, EnvelopeIcon,
 } from '@heroicons/react/24/outline';
+import useNotificationStore from '../stores/notificationStore';
 
 const MENU = [
   { path: '/admin',           label: 'Dashboard',    Icon: ChartBarIcon,     exact: true       },
@@ -17,6 +19,7 @@ const MENU = [
   { path: '/admin/reviews',   label: 'Avis clients', Icon: StarIcon                            },
   { path: '/admin/employees', label: 'Employés',     Icon: UsersIcon,        adminOnly: true   },
   { path: '/admin/invoices',  label: 'Factures',     Icon: DocumentTextIcon, adminOnly: true   },
+  { path: '/admin/messages',  label: 'Messages',     Icon: EnvelopeIcon,                    },
 ];
 
 // Bottom tabs mobile : max 5 items les plus utiles
@@ -25,6 +28,7 @@ const BOTTOM_TABS = [
   { path: '/admin/bookings',  label: 'Séances',     Icon: CalendarDaysIcon             },
   { path: '/admin/photos',    label: 'Photos',      Icon: PhotoIcon                    },
   { path: '/admin/services',  label: 'Services',    Icon: CameraIcon                   },
+  { path: '/admin/messages',   label: 'Messages',    Icon: EnvelopeIcon                 },
   { path: '/profile',         label: 'Profil',      Icon: UserCircleIcon               },
 ];
 
@@ -35,6 +39,38 @@ export default function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const isAdmin = user?.roles?.includes('ROLE_ADMIN');
+  const { total, unreadMessages, pendingBookings, startPolling, stopPolling } = useNotificationStore();
+  const prevTotalRef = useRef(0);
+  const audioRef = useRef(null);
+
+  // Démarrer le polling notifications dès que l'admin est connecté
+  useEffect(() => {
+    startPolling(30000); // toutes les 30s
+    return () => stopPolling();
+  }, [startPolling, stopPolling]);
+
+  // Alerte sonore + notification browser quand nouveau message/réservation
+  useEffect(() => {
+    if (total > prevTotalRef.current && prevTotalRef.current > 0) {
+      // Notification browser (si permission accordée)
+      if (Notification.permission === 'granted') {
+        new Notification('SanohPhoto — Nouvelle notification', {
+          body: unreadMessages > 0
+            ? \`\${unreadMessages} nouveau(x) message(s) de contact\`
+            : \`\${pendingBookings} réservation(s) en attente\`,
+          icon: '/favicon.ico',
+        });
+      }
+    }
+    prevTotalRef.current = total;
+  }, [total, unreadMessages, pendingBookings]);
+
+  // Demander la permission notifications browser au montage
+  useEffect(() => {
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+  }, []);
 
   // Fermer sidebar sur changement de route
   useEffect(() => { setSidebarOpen(false); }, [location.pathname]);
@@ -165,9 +201,17 @@ export default function AdminLayout() {
 
           {/* Actions droite */}
           <div className="flex items-center gap-1">
-            <button className="relative p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-              <BellIcon className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-              <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-red-500 rounded-full" />
+            <button
+              onClick={() => navigate('/admin/messages')}
+              className="relative p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              title={total > 0 ? \`\${total} notification(s)\` : 'Notifications'}
+            >
+              <BellIcon className={`w-5 h-5 \${total > 0 ? 'text-amber-500' : 'text-gray-500 dark:text-gray-400'}\`} />
+              {total > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center ring-2 ring-white dark:ring-gray-900">
+                  {total > 99 ? '99+' : total}
+                </span>
+              )}
             </button>
             <Link to="/profile"
               className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white text-xs font-bold hover:scale-105 transition-transform"

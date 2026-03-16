@@ -25,6 +25,7 @@ import ServicesManagement    from '../pages/admin/ServicesManagement';
 import ReviewsModeration     from '../pages/admin/ReviewsModeration';
 import EmployeesManagement   from '../pages/admin/EmployeesManagement';
 import InvoicesManagement    from '../pages/admin/InvoicesManagement';
+import MessagesManagement    from '../pages/admin/MessagesManagement';
 
 // ─── Route guard ──────────────────────────────────────────────────────────────
 const ProtectedRoute = ({ children, roles = [] }) => {
@@ -107,6 +108,7 @@ const AppRouter = () => {
           <Route path="reviews"         element={<ReviewsModeration />} />
           <Route path="employees"       element={<EmployeesManagement />} />
           <Route path="invoices"        element={<InvoicesManagement />} />
+          <Route path="messages"        element={<MessagesManagement />} />
           {/* NOTE : la route /admin/bookings/:id référencée dans BookingsManagement
               n'existe pas encore — le lien "Voir détails" est désactivé jusqu'à
               l'implémentation d'une page de détail booking. */}

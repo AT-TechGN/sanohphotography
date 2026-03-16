@@ -33,6 +33,9 @@ class ContactMessage
     #[ORM\Column(nullable: true)]
     private ?\DateTime $repliedAt = null;
 
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $replyBody = null;
+
     #[ORM\Column]
     private ?\DateTime $createdAt = null;
 
