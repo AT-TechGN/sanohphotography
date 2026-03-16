@@ -296,7 +296,6 @@ const AdminDashboard = () => {
         </div>
       </div> {/* CORRECTION 6 : </div> fermant de la grille charts row 2 manquant */}
 
-      {/* Activity & Upcoming Events */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm">
           <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Activité Récente</h3>
@@ -308,10 +307,10 @@ const AdminDashboard = () => {
                   <p className="text-sm text-gray-900 dark:text-white font-medium">{activity.message}</p>
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{new Date(activity.timestamp).toLocaleString('fr-FR')}</p>
                 </div>
-              </div> {/* CORRECTION 7 : </div> fermant de chaque item activité manquant */}
+              </div>  
             ))}
           </div>
-        </div> {/* CORRECTION 8 : </div> fermant du panel activité manquant */}
+        </div>  
 
         <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm">
           <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Prochaines Séances (7 jours)</h3>
@@ -336,8 +335,8 @@ const AdminDashboard = () => {
               <p className="text-center text-gray-500 dark:text-gray-400 py-8">Aucune séance prévue dans les 7 prochains jours</p>
             )}
           </div>
-        </div> {/* CORRECTION 9 : </div> fermant du panel événements manquant */}
-      </div> {/* CORRECTION 10 : </div> fermant de la grille activité/événements manquant */}
+        </div> 
+      </div>  
 
       {/* Quick Actions */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
