@@ -65,7 +65,7 @@ class AdminAlbumController extends AbstractController
     /**
      * GET /admin/albums/{id}
      */
-    #[Route('/{id}', name: 'admin_album_get', methods: ['GET'])]
+    #[Route('/{id}', name: 'admin_album_get', methods: ['GET'], requirements: ['id' => '\d+'])]
     public function get(int $id): JsonResponse
     {
         $album = $this->albumRepository->find($id) ?? throw new NotFoundHttpException('Album non trouvé');
@@ -116,7 +116,7 @@ class AdminAlbumController extends AbstractController
     /**
      * PUT /admin/albums/{id} - Update
      */
-    #[Route('/{id}', name: 'admin_album_update', methods: ['PUT', 'PATCH'])]
+    #[Route('/{id}', name: 'admin_album_update', methods: ['PUT', 'PATCH'], requirements: ['id' => '\d+'])]
     public function update(Request $request, int $id): JsonResponse
     {
         $album = $this->albumRepository->find($id) ?? throw new NotFoundHttpException();
@@ -139,7 +139,7 @@ class AdminAlbumController extends AbstractController
     /**
      * DELETE /admin/albums/{id} - Delete (cascade photos?)
      */
-    #[Route('/{id}', name: 'admin_album_delete', methods: ['DELETE'])]
+    #[Route('/{id}', name: 'admin_album_delete', methods: ['DELETE'], requirements: ['id' => '\d+'])]
     public function delete(int $id): JsonResponse
     {
         $album = $this->albumRepository->find($id) ?? throw new NotFoundHttpException();

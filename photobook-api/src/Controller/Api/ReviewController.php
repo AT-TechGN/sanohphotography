@@ -117,7 +117,7 @@ final class ReviewController extends AbstractController
     /**
      * Approuver un avis
      */
-    #[Route('/{id}/approve', name: 'api_review_approve', methods: ['PATCH'])]
+    #[Route('/{id}/approve', name: 'api_review_approve', methods: ['PATCH'], requirements: ['id' => '\d+'])]
     public function approve(int $id): JsonResponse
     {
         // DEBUG_BYPASS: $this->denyAccessUnlessGranted('ROLE_PHOTOGRAPHE');
@@ -143,7 +143,7 @@ final class ReviewController extends AbstractController
     /**
      * Rejeter un avis
      */
-    #[Route('/{id}/reject', name: 'api_review_reject', methods: ['PATCH'])]
+    #[Route('/{id}/reject', name: 'api_review_reject', methods: ['PATCH'], requirements: ['id' => '\d+'])]
     public function reject(int $id): JsonResponse
     {
         // DEBUG_BYPASS: $this->denyAccessUnlessGranted('ROLE_PHOTOGRAPHE');
@@ -169,7 +169,7 @@ final class ReviewController extends AbstractController
     /**
      * Mettre en vedette / retirer de la vedette
      */
-    #[Route('/{id}/toggle-featured', name: 'api_review_toggle_featured', methods: ['PATCH'])]
+    #[Route('/{id}/toggle-featured', name: 'api_review_toggle_featured', methods: ['PATCH'], requirements: ['id' => '\d+'])]
     public function toggleFeatured(int $id): JsonResponse
     {
         // DEBUG_BYPASS: $this->denyAccessUnlessGranted('ROLE_PHOTOGRAPHE');

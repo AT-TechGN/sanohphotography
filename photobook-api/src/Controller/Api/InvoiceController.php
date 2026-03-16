@@ -132,7 +132,7 @@ final class InvoiceController extends AbstractController
     /**
      * GET /api/invoices/{id}/pdf
      */
-    #[Route('/{id}/pdf', name: 'api_invoice_pdf', methods: ['GET'])]
+    #[Route('/{id}/pdf', name: 'api_invoice_pdf', methods: ['GET'], requirements: ['id' => '\d+'])]
     public function downloadPdf(int $id): Response
     {
         $invoice = $this->invoiceRepository->find($id);
@@ -158,7 +158,7 @@ final class InvoiceController extends AbstractController
     /**
      * PATCH /api/invoices/{id}/mark-paid
      */
-    #[Route('/{id}/mark-paid', name: 'api_invoice_mark_paid', methods: ['PATCH'])]
+    #[Route('/{id}/mark-paid', name: 'api_invoice_mark_paid', methods: ['PATCH'], requirements: ['id' => '\d+'])]
     public function markPaid(int $id, Request $request): JsonResponse
     {
         // DEBUG_BYPASS: $this->denyAccessUnlessGranted('ROLE_ADMIN');
@@ -181,7 +181,7 @@ final class InvoiceController extends AbstractController
     /**
      * PATCH /api/invoices/{id}/cancel
      */
-    #[Route('/{id}/cancel', name: 'api_invoice_cancel', methods: ['PATCH'])]
+    #[Route('/{id}/cancel', name: 'api_invoice_cancel', methods: ['PATCH'], requirements: ['id' => '\d+'])]
     public function cancel(int $id): JsonResponse
     {
         // DEBUG_BYPASS: $this->denyAccessUnlessGranted('ROLE_ADMIN');

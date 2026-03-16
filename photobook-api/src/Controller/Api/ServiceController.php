@@ -100,7 +100,7 @@ final class ServiceController extends AbstractController
     /**
      * PATCH /api/services/{id}/toggle-active
      */
-    #[Route('/{id}/toggle-active', name: 'api_service_toggle_active', methods: ['PATCH'])]
+    #[Route('/{id}/toggle-active', name: 'api_service_toggle_active', methods: ['PATCH'], requirements: ['id' => '\d+'])]
     public function toggleActive(int $id): JsonResponse
     {
         // DEBUG_BYPASS: $this->denyAccessUnlessGranted('ROLE_PHOTOGRAPHE');

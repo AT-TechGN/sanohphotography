@@ -236,7 +236,7 @@ final class EmployeeController extends AbstractController
         ], Response::HTTP_CREATED);
     }
 
-    #[Route('/availabilities/{id}', name: 'api_employee_delete_availability', methods: ['DELETE'])]
+    #[Route('/availabilities/{id}', name: 'api_employee_delete_availability', methods: ['DELETE'], requirements: ['id' => '\d+'])]
     public function deleteAvailability(int $id): JsonResponse
     {
         // DEBUG_BYPASS: $this->denyAccessUnlessGranted('ROLE_ADMIN');
@@ -308,7 +308,7 @@ final class EmployeeController extends AbstractController
         ], Response::HTTP_CREATED);
     }
 
-    #[Route('/blocked-slots/{id}', name: 'api_employee_delete_blocked_slot', methods: ['DELETE'])]
+    #[Route('/blocked-slots/{id}', name: 'api_employee_delete_blocked_slot', methods: ['DELETE'], requirements: ['id' => '\d+'])]
     public function deleteBlockedSlot(int $id): JsonResponse
     {
         // DEBUG_BYPASS: $this->denyAccessUnlessGranted('ROLE_ADMIN');

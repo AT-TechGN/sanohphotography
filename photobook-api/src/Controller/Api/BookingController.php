@@ -179,7 +179,7 @@ final class BookingController extends AbstractController
      * GET /api/bookings/{id}
      * CORRECTION 2 : route manquante (le front appelait cette route via bookingService.getById)
      */
-    #[Route('/{id}', name: 'api_booking_get', methods: ['GET'])]
+    #[Route('/{id}', name: 'api_booking_get', methods: ['GET'], requirements: ['id' => '\d+'])]
     public function getOne(int $id): JsonResponse
     {
         $booking = $this->bookingRepository->find($id);
@@ -201,7 +201,7 @@ final class BookingController extends AbstractController
     /**
      * PATCH /api/bookings/{id}/confirm
      */
-    #[Route('/{id}/confirm', name: 'api_booking_confirm', methods: ['PATCH'])]
+    #[Route('/{id}/confirm', name: 'api_booking_confirm', methods: ['PATCH'], requirements: ['id' => '\d+'])]
     public function confirm(int $id): JsonResponse
     {
         // DEBUG_BYPASS: $this->denyAccessUnlessGranted('ROLE_PHOTOGRAPHE');
@@ -222,7 +222,7 @@ final class BookingController extends AbstractController
     /**
      * PATCH /api/bookings/{id}/cancel
      */
-    #[Route('/{id}/cancel', name: 'api_booking_cancel', methods: ['PATCH'])]
+    #[Route('/{id}/cancel', name: 'api_booking_cancel', methods: ['PATCH'], requirements: ['id' => '\d+'])]
     public function cancel(int $id, Request $request): JsonResponse
     {
         $booking = $this->bookingRepository->find($id);
@@ -250,7 +250,7 @@ final class BookingController extends AbstractController
     /**
      * PATCH /api/bookings/{id}/start
      */
-    #[Route('/{id}/start', name: 'api_booking_start', methods: ['PATCH'])]
+    #[Route('/{id}/start', name: 'api_booking_start', methods: ['PATCH'], requirements: ['id' => '\d+'])]
     public function start(int $id): JsonResponse
     {
         // DEBUG_BYPASS: $this->denyAccessUnlessGranted('ROLE_EMPLOYE');
@@ -271,7 +271,7 @@ final class BookingController extends AbstractController
     /**
      * PATCH /api/bookings/{id}/complete
      */
-    #[Route('/{id}/complete', name: 'api_booking_complete', methods: ['PATCH'])]
+    #[Route('/{id}/complete', name: 'api_booking_complete', methods: ['PATCH'], requirements: ['id' => '\d+'])]
     public function complete(int $id): JsonResponse
     {
         // DEBUG_BYPASS: $this->denyAccessUnlessGranted('ROLE_EMPLOYE');
@@ -447,7 +447,7 @@ final class BookingController extends AbstractController
      * PATCH /api/bookings/{id}/admin-status — Changer le statut (admin)
      * CORRECTION : bookingService.updateBookingStatus() appelait /admin/bookings/:id/status → 404
      */
-    #[Route('/{id}/admin-status', name: 'api_admin_booking_status', methods: ['PATCH'])]
+    #[Route('/{id}/admin-status', name: 'api_admin_booking_status', methods: ['PATCH'], requirements: ['id' => '\d+'])]
     public function adminUpdateStatus(int $id, Request $request): JsonResponse
     {
         // DEBUG_BYPASS: $this->denyAccessUnlessGranted('ROLE_PHOTOGRAPHE');
@@ -472,7 +472,7 @@ final class BookingController extends AbstractController
      * PATCH /api/bookings/{id}/assign — Assigner un employé (admin)
      * CORRECTION : bookingService.assignEmployee() appelait /admin/bookings/:id/assign → 404
      */
-    #[Route('/{id}/assign', name: 'api_admin_booking_assign', methods: ['PATCH'])]
+    #[Route('/{id}/assign', name: 'api_admin_booking_assign', methods: ['PATCH'], requirements: ['id' => '\d+'])]
     public function adminAssignEmployee(int $id, Request $request): JsonResponse
     {
         // DEBUG_BYPASS: $this->denyAccessUnlessGranted('ROLE_PHOTOGRAPHE');
