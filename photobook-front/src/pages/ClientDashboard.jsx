@@ -83,9 +83,9 @@ export default function ClientDashboard() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* ── Header coloré ────────────────────────────────────────────── */}
-      <div className="bg-gradient-to-br from-gray-900 via-gray-900 to-amber-900 pt-20 pb-24 px-4 relative overflow-hidden">
+      <div className="bg-gradient-to-br from-gray-900 via-gray-900 to-amber-900 pt-16 sm:pt-20 pb-24 px-4 relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-amber-500/20 via-transparent to-transparent pointer-events-none" />
-        <div className="max-w-2xl mx-auto relative">
+        <div className="w-full max-w-2xl mx-auto relative">
           <div className="flex items-center gap-4">
             <Link to="/profile">
               <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-600 flex items-center justify-center text-white text-2xl font-bold shadow-xl shadow-amber-500/30 flex-shrink-0">
@@ -116,7 +116,7 @@ export default function ClientDashboard() {
       </div>
 
       {/* ── Card principale avec tabs ─────────────────────────────────── */}
-      <div className="max-w-2xl mx-auto px-4 -mt-8 relative z-10 pb-24">
+      <div className="w-full max-w-2xl mx-auto px-3 sm:px-4 -mt-8 relative z-10 pb-24">
         <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl overflow-hidden">
           {/* Tabs — scrollable horizontal sur mobile */}
           <div className="flex border-b border-gray-100 dark:border-gray-700 overflow-x-auto scrollbar-none">

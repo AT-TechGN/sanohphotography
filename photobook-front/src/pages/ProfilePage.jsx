@@ -160,7 +160,7 @@ const ProfilePage = () => {
         <div className="absolute -bottom-20 -left-20 w-80 h-80 bg-orange-600/8 rounded-full blur-3xl" />
       </div>
 
-      <div className="relative z-10 max-w-2xl mx-auto px-4 py-6 md:py-12">
+      <div className="relative z-10 w-full max-w-2xl mx-auto px-3 sm:px-4 py-6 md:py-12">
         {/* Back button */}
         <button onClick={() => navigate(-1)}
           className="flex items-center gap-2 text-gray-400 hover:text-white mb-6 text-sm transition-colors">

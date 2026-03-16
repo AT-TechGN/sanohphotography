@@ -57,7 +57,7 @@ const BookingStep2 = () => {
       </div>
 
       {/* Sélection de date */}
-      <div className="bg-white dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-xl p-6 mb-6">
+      <div className="bg-white dark:bg-gray-800 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-xl p-6 mb-6">
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
           <CalendarDaysIcon className="w-4 h-4 text-amber-600" />
           Sélectionnez une date

@@ -21,13 +21,35 @@
 @layer base {
   html {
     scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
   }
 
   body {
-    @apply font-sans;
+    @apply font-sans bg-white dark:bg-gray-900 text-gray-900 dark:text-white;
     overflow-x: hidden;
-    /* Le fond est géré par chaque page/layout avec dark: variants */
-    /* bg-dark était forcé et cassait le dark mode des pages admin */
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  /* Inputs et selects — dark mode global */
+  input, select, textarea {
+    @apply dark:bg-gray-800 dark:text-white dark:border-gray-600;
+  }
+
+  /* Scrollbar dark mode */
+  :root.dark * {
+    scrollbar-color: #4b5563 #1f2937;
+  }
+
+  /* Transitions globales pour le changement de thème */
+  *, *::before, *::after {
+    transition-property: background-color, border-color, color;
+    transition-duration: 150ms;
+    transition-timing-function: ease;
+  }
+
+  /* Annuler la transition sur les animations */
+  [class*="animate-"], [class*="motion-"] {
+    transition-property: none;
   }
 }
 
@@ -462,4 +484,38 @@
 /* ── Body padding pour bottom tab bar sur mobile ────────────────────── */
 @media (max-width: 768px) {
   body { padding-bottom: env(safe-area-inset-bottom, 0px); }
+}
+
+/* ── Utilitaires mobile ─────────────────────────────────────────────────── */
+/* Plein écran mobile sans espaces latéraux */
+@media (max-width: 639px) {
+  .mobile-full {
+    width: 100%;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  /* Cartes full width sur mobile */
+  .card-mobile {
+    border-radius: 16px;
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  /* Empêcher le débordement horizontal */
+  .overflow-x-safe {
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
+}
+
+/* Tap highlight transparent (meilleure UX mobile) */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Sélection de texte en amber */
+::selection {
+  background-color: rgba(245, 158, 11, 0.3);
+  color: inherit;
 }

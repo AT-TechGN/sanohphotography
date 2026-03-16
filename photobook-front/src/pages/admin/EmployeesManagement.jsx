@@ -188,7 +188,7 @@ const EmployeesManagement = () => {
   if (loading) return <Loading fullScreen text="Chargement des employés..." />;
 
   return (
-    <div className="p-4 lg:p-8 space-y-6">
+    <div className="p-3 sm:p-4 lg:p-8 space-y-6">
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>

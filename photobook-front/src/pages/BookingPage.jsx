@@ -53,10 +53,10 @@ const BookingPage = () => {
   const CurrentStepComponent = steps[currentStep - 1].component;
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300 pt-16">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300 pt-14 sm:pt-16">
       {/* Header Section */}
       <div className="bg-gradient-to-br from-gray-900 via-amber-950 to-gray-900 text-white py-12">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="w-full max-w-4xl mx-auto px-3 sm:px-4 lg:px-8">
           <div className="text-center">
             <Motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -74,7 +74,7 @@ const BookingPage = () => {
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="w-full max-w-4xl mx-auto px-3 sm:px-4 lg:px-8 py-8">
         {/* Stepper */}
         <div className="mb-10">
           <div className="flex items-center justify-between">

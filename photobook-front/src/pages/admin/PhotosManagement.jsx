@@ -80,7 +80,7 @@ const AlbumCard = ({ album, onView, onEdit, onDelete, formatDate }) => (
       </div>
       {album.isPublic && <span className="absolute top-3 right-3 px-2 py-1 bg-green-500 text-white text-xs rounded-full">Public</span>}
     </div>
-    <div className="p-4">
+    <div className="p-3 sm:p-4">
       <h3 className="font-bold text-gray-900 dark:text-white truncate">{album.title}</h3>
       <div className="flex items-center gap-2 mt-2 text-sm text-gray-500 dark:text-gray-400"><PhotoIcon className="w-4 h-4" /><span>{album.photosCount ?? 0} photo(s)</span></div>
       <div className="flex items-center gap-2 mt-1 text-sm text-gray-500 dark:text-gray-400"><CalendarDaysIcon className="w-4 h-4" /><span>{formatDate(album.createdAt)}</span></div>
@@ -243,7 +243,7 @@ const PhotosManagement = () => {
   if (loading) return <Loading fullScreen text="Chargement des albums…" />;
 
   return (
-    <div className="p-4 lg:p-8 space-y-6">
+    <div className="p-3 sm:p-4 lg:p-8 space-y-6">
 
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">

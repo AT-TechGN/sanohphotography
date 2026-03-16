@@ -113,7 +113,7 @@ const BookingsManagement = () => {
   if (loading) return <Loading fullScreen text="Chargement des réservations..." />;
 
   return (
-    <div className="p-4 lg:p-8 space-y-6">
+    <div className="p-3 sm:p-4 lg:p-8 space-y-6">
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
@@ -204,7 +204,7 @@ const BookingsManagement = () => {
               </thead>
               <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                 {filteredBookings.map((booking) => (
-                  <tr key={booking.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                  <tr key={booking.id} className="hover:bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-700/50 transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-orange-400 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">

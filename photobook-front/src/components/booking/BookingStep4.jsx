@@ -34,7 +34,7 @@ const BookingStep4 = () => {
       </p>
 
       {/* Récap */}
-      <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 mb-8 space-y-2">
+      <div className="bg-gray-50 dark:bg-gray-700/50 dark:bg-gray-700/50 rounded-xl p-4 mb-8 space-y-2">
         <div className="flex justify-between text-sm">
           <span className="text-gray-500 dark:text-gray-400">Service</span>
           <span className="font-medium text-gray-900 dark:text-white">{selectedService?.name}</span>
