@@ -11,7 +11,9 @@ async getActive(params = {}) {
     const { limit } = params;
     const query = new URLSearchParams({ ...(limit && { limit }) });
     const response = await api.get(`/services/active${query.toString() ? `?${query}` : ''}`);
-    return response.data;
+    // Normaliser : retourner toujours un tableau
+    const data = response.data;
+    return Array.isArray(data) ? data : (data?.data ?? []);
   },
 
   /**
