@@ -375,7 +375,10 @@ const PhotosManagement = () => {
               <p className="text-gray-500 dark:text-gray-400 mb-4">ou cliquez pour sélectionner des fichiers</p>
               <input type="file" multiple accept="image/*" onChange={(e) => handleFileUpload(e.target.files)} className="hidden" id="photo-upload" disabled={uploading} />
               <label htmlFor="photo-upload" className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-medium hover:shadow-lg transition-all cursor-pointer">
-                {uploading ? <><div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent" />Upload en cours...</> : <><CloudArrowUpIcon className="w-5 h-5" />Sélectionner des photos</>}
+                {uploading
+                  ? <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent" />
+                  : <CloudArrowUpIcon className="w-5 h-5" />}
+                {uploading ? 'Upload en cours...' : 'Sélectionner des photos'}
               </label>
             </div>
           </div>

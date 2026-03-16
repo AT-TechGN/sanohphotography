@@ -161,9 +161,10 @@ const ServicesManagement = () => {
           onClick={() => { resetForm(); setShowForm(v => !v); }}
           className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-medium hover:shadow-lg transition-all"
         >
-          {showForm
-            ? <><XCircleIcon className="w-5 h-5" />Annuler</>
-            : <><PlusIcon className="w-5 h-5" />Nouveau service</>}
+          <span className="inline-flex items-center gap-2">
+            {showForm ? <XCircleIcon className="w-5 h-5" /> : <PlusIcon className="w-5 h-5" />}
+            {showForm ? 'Annuler' : 'Nouveau service'}
+          </span>
         </button>
       </div>
 
@@ -321,10 +322,8 @@ const ServicesManagement = () => {
                           : 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 hover:bg-green-100'
                       }`}>
                       {/* FIX : Fragment avec key pour éviter insertBefore error */}
-                      {service.isActive
-                        ? <><XCircleIcon className="w-4 h-4" /><span className="text-sm font-medium">Désactiver</span></>
-                        : <><CheckCircleIcon className="w-4 h-4" /><span className="text-sm font-medium">Activer</span></>
-                      }
+                      {service.isActive ? <XCircleIcon className="w-4 h-4" /> : <CheckCircleIcon className="w-4 h-4" />}
+                      <span className="text-sm font-medium">{service.isActive ? 'Désactiver' : 'Activer'}</span>
                     </button>
                     <button key="delete" onClick={() => handleDelete(service.id)}
                       className="px-4 py-2 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
