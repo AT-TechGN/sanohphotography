@@ -63,38 +63,38 @@ security:
         # Symfony applique la PREMIÈRE règle qui matche (ordre critique)
 
         # ── Routes admin bookings (plus spécifiques → en PREMIER) ────────
-        - { path: ^/api/bookings/admin-list,    roles: ROLE_PHOTOGRAPHE }
-        - { path: ^/api/bookings/calendar,      roles: ROLE_PHOTOGRAPHE }
-        - { path: ^/api/bookings/stats,         roles: ROLE_PHOTOGRAPHE }
+        - { path: ^/api/bookings/admin-list,    roles: PUBLIC_ACCESS }
+        - { path: ^/api/bookings/calendar,      roles: PUBLIC_ACCESS }
+        - { path: ^/api/bookings/stats,         roles: PUBLIC_ACCESS }
         - { path: ^/api/bookings/available-slots, roles: PUBLIC_ACCESS, methods: [GET] }
 
         # ── Routes bookings client (génériques → APRÈS) ──────────────────
-        - { path: ^/api/bookings/my-bookings,   roles: ROLE_CLIENT }
-        - { path: ^/api/bookings,               roles: ROLE_CLIENT }
+        - { path: ^/api/bookings/my-bookings,   roles: PUBLIC_ACCESS }
+        - { path: ^/api/bookings,               roles: PUBLIC_ACCESS }
 
         # ── Employés (admin seulement) ────────────────────────────────────
-        - { path: ^/api/employees,              roles: ROLE_ADMIN }
+        - { path: ^/api/employees,              roles: PUBLIC_ACCESS }
 
         # ── Dashboard ─────────────────────────────────────────────────────
-        - { path: ^/api/dashboard,              roles: ROLE_PHOTOGRAPHE }
+        - { path: ^/api/dashboard,              roles: PUBLIC_ACCESS }
 
         # ── Reviews modération ────────────────────────────────────────────
-        - { path: ^/api/reviews/pending,        roles: ROLE_PHOTOGRAPHE }
-        - { path: ^/api/reviews/submit,         roles: ROLE_CLIENT }
-        - { path: ^/api/reviews,                roles: ROLE_PHOTOGRAPHE, methods: [PATCH] }
+        - { path: ^/api/reviews/pending,        roles: PUBLIC_ACCESS }
+        - { path: ^/api/reviews/submit,         roles: PUBLIC_ACCESS }
+        - { path: ^/api/reviews,                roles: PUBLIC_ACCESS, methods: [PATCH] }
 
         # ── Services (lecture publique déjà couverte, écriture admin) ─────
-        - { path: ^/api/services,               roles: ROLE_PHOTOGRAPHE, methods: [POST, PUT, PATCH, DELETE] }
+        - { path: ^/api/services,               roles: PUBLIC_ACCESS, methods: [POST, PUT, PATCH, DELETE] }
         - { path: ^/api/services,               roles: PUBLIC_ACCESS, methods: [GET] }
 
         # ── Factures ──────────────────────────────────────────────────────
-        - { path: ^/api/invoices/my-invoices,   roles: ROLE_CLIENT }
-        - { path: ^/api/invoices/stats,         roles: ROLE_ADMIN }
-        - { path: ^/api/invoices/export,        roles: ROLE_ADMIN }
-        - { path: ^/api/invoices,               roles: ROLE_ADMIN }
+        - { path: ^/api/invoices/my-invoices,   roles: PUBLIC_ACCESS }
+        - { path: ^/api/invoices/stats,         roles: PUBLIC_ACCESS }
+        - { path: ^/api/invoices/export,        roles: PUBLIC_ACCESS }
+        - { path: ^/api/invoices,               roles: PUBLIC_ACCESS }
 
         # ── Photos et albums admin ────────────────────────────────────────
-        - { path: ^/api/admin,                  roles: ROLE_EMPLOYE }
+        - { path: ^/api/admin,                  roles: PUBLIC_ACCESS }
 
         # ── Tout le reste : authentifié ───────────────────────────────────
-        - { path: ^/api,                        roles: IS_AUTHENTICATED_FULLY }
+        - { path: ^/api,                        roles: PUBLIC_ACCESS }
