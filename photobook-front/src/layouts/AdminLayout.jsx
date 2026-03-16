@@ -1,8 +1,7 @@
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import useAuthStore from '../stores/authStore';
 import Notification from '../components/common/Notification';
-import { useEffect, useRef } from 'react';
 import {
   ChartBarIcon, CalendarDaysIcon, PhotoIcon,
   CameraIcon, StarIcon, UsersIcon, DocumentTextIcon,
