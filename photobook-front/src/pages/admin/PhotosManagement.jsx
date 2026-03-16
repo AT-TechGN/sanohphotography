@@ -268,7 +268,8 @@ const PhotosManagement = () => {
         </div>
       )}
 
-      {/* Vue Albums */}
+      {/* Vues conditionnelles - key stable pour éviter insertBefore */}
+      <div key={viewMode}>
       {viewMode === 'albums' && (
         <>
           <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm">
@@ -411,6 +412,7 @@ const PhotosManagement = () => {
           )}
         </div>
       )}
+      </div>{/* fin key={viewMode} */}
     </div>
   );
 };
