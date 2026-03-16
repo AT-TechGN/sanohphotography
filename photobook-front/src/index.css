@@ -449,3 +449,15 @@
   .ph3 { background: linear-gradient(135deg, #1a0e1a 0%, #2b1433 50%, #0e0814 100%); }
 }
 
+
+/* ── Mobile safe area ─────────────────────────────────────────────────── */
+.safe-area-pb { padding-bottom: env(safe-area-inset-bottom, 0px); }
+
+/* ── Scrollbar invisible ────────────────────────────────────────────── */
+.scrollbar-none { scrollbar-width: none; }
+.scrollbar-none::-webkit-scrollbar { display: none; }
+
+/* ── Body padding pour bottom tab bar sur mobile ────────────────────── */
+@media (max-width: 768px) {
+  body { padding-bottom: env(safe-area-inset-bottom, 0px); }
+}

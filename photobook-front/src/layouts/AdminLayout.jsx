@@ -1,197 +1,190 @@
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import useAuthStore from '../stores/authStore';
 import Notification from '../components/common/Notification';
 import {
-  HomeIcon,
-  CalendarDaysIcon,
-  CameraIcon,
-  StarIcon,
-  UsersIcon,
-  DocumentTextIcon,
-  PhotoIcon,
-  ChartBarIcon,
-  ArrowLeftOnRectangleIcon,
-  Bars3Icon,
-  XMarkIcon,
-  BellIcon,
-  MagnifyingGlassIcon,
+  ChartBarIcon, CalendarDaysIcon, PhotoIcon,
+  CameraIcon, StarIcon, UsersIcon, DocumentTextIcon,
+  ArrowLeftOnRectangleIcon, Bars3Icon, XMarkIcon,
+  BellIcon, HomeIcon, UserCircleIcon,
 } from '@heroicons/react/24/outline';
 
+/* ─────────────────────────────────────────────────────────────────────────────
+   AdminLayout — sidebar desktop + bottom tabs mobile
+───────────────────────────────────────────────────────────────────────────── */
+
+const menuItems = [
+  { path: '/admin',           label: 'Dashboard',     Icon: ChartBarIcon,     exact: true  },
+  { path: '/admin/bookings',  label: 'Réservations',  Icon: CalendarDaysIcon              },
+  { path: '/admin/photos',    label: 'Photos',        Icon: PhotoIcon                     },
+  { path: '/admin/services',  label: 'Services',      Icon: CameraIcon                    },
+  { path: '/admin/reviews',   label: 'Avis',          Icon: StarIcon                      },
+  { path: '/admin/employees', label: 'Employés',      Icon: UsersIcon,       adminOnly: true },
+  { path: '/admin/invoices',  label: 'Factures',      Icon: DocumentTextIcon, adminOnly: true },
+];
+
 const AdminLayout = () => {
-  const location = useLocation();
-  const navigate = useNavigate();
+  const location  = useLocation();
+  const navigate  = useNavigate();
   const { logout, user } = useAuthStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
-  const menuItems = [
-    { path: '/admin', label: 'Dashboard', icon: ChartBarIcon, exact: true },
-    { path: '/admin/bookings', label: 'Réservations', icon: CalendarDaysIcon },
-    { path: '/admin/photos', label: 'Photos & Albums', icon: PhotoIcon },
-    { path: '/admin/services', label: 'Services', icon: CameraIcon },
-    { path: '/admin/reviews', label: 'Avis clients', icon: StarIcon },
-    { path: '/admin/employees', label: 'Employés', icon: UsersIcon, adminOnly: true },
-    { path: '/admin/invoices', label: 'Factures', icon: DocumentTextIcon, adminOnly: true },
-  ];
-
-  const isAdmin = user?.roles?.includes('ROLE_ADMIN');
+  const isAdmin       = user?.roles?.includes('ROLE_ADMIN');
   const isPhotographe = user?.roles?.includes('ROLE_PHOTOGRAPHE');
 
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 1024);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
 
-  const isActive = (itemPath, exact = false) => {
-    if (exact) {
-      return location.pathname === itemPath;
-    }
-    return location.pathname.startsWith(itemPath);
-  };
+  // Fermer sidebar mobile au changement de route
+  useEffect(() => { setSidebarOpen(false); }, [location.pathname]);
+
+  const isActive = (p, exact = false) =>
+    exact ? location.pathname === p : location.pathname.startsWith(p);
+
+  const visibleItems = menuItems.filter(i => !i.adminOnly || isAdmin);
+
+  // Sur mobile : on affiche max 5 tabs dans la bottom bar
+  const bottomItems = [
+    { path: '/admin',          label: 'Dashboard', Icon: ChartBarIcon,    exact: true },
+    { path: '/admin/bookings', label: 'Séances',   Icon: CalendarDaysIcon             },
+    { path: '/admin/photos',   label: 'Photos',    Icon: PhotoIcon                    },
+    { path: '/admin/services', label: 'Services',  Icon: CameraIcon                   },
+    { path: '/profile',        label: 'Profil',    Icon: UserCircleIcon               },
+  ];
 
   return (
-    <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Mobile sidebar overlay */}
+    <div className="flex h-screen bg-gray-50 dark:bg-gray-900 overflow-hidden">
+      {/* ── Overlay mobile ───────────────────────────────────────────── */}
       {sidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
+        <div className="fixed inset-0 bg-black/60 z-40 lg:hidden"
+          onClick={() => setSidebarOpen(false)} />
       )}
 
-      {/* Sidebar */}
-      <aside
-        className={`fixed lg:static inset-y-0 left-0 z-50 w-72 bg-gradient-to-br from-purple-900 via-purple-800 to-pink-800 text-white transform transition-transform duration-300 ease-in-out ${
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-        }`}
-      >
-        <div className="flex flex-col h-full">
-          {/* Logo */}
-          <div className="p-6 border-b border-white/10">
-            <Link to="/" className="flex items-center gap-3 group">
-              <div className="w-12 h-12 rounded-xl bg-white/10 backdrop-blur-sm flex items-center justify-center group-hover:bg-white/20 transition-colors">
-                <CameraIcon className="w-7 h-7" />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold">PhotoBook</h1>
-                <p className="text-xs text-purple-200">Administration</p>
-              </div>
-            </Link>
+      {/* ── Sidebar desktop ──────────────────────────────────────────── */}
+      <aside className={`
+        fixed lg:static inset-y-0 left-0 z-50 w-64
+        bg-gray-950 text-white flex flex-col
+        transition-transform duration-300 ease-in-out
+        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+      `}>
+        {/* Logo */}
+        <div className="flex items-center gap-3 px-5 py-5 border-b border-white/5">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-lg shadow-amber-500/30">
+            <CameraIcon className="w-5 h-5 text-white" />
           </div>
+          <div>
+            <h1 className="text-base font-bold tracking-tight">SanohPhoto</h1>
+            <p className="text-[11px] text-gray-400">Panel admin</p>
+          </div>
+          <button onClick={() => setSidebarOpen(false)} className="lg:hidden ml-auto p-1 rounded-lg hover:bg-white/10">
+            <XMarkIcon className="w-5 h-5" />
+          </button>
+        </div>
 
-          {/* Navigation */}
-          <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-            {menuItems.map((item) => {
-              if (item.adminOnly && !isAdmin) return null;
-
-              const Icon = item.icon;
-              const active = isActive(item.path, item.exact);
-
+        {/* Nav */}
+        <nav className="flex-1 py-4 overflow-y-auto">
+          <p className="px-5 mb-2 text-[10px] font-semibold uppercase tracking-widest text-gray-500">Navigation</p>
+          <div className="space-y-0.5 px-3">
+            {visibleItems.map(({ path, label, Icon, exact }) => {
+              const active = isActive(path, exact);
               return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  onClick={() => setSidebarOpen(false)}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all ${
+                <Link key={path} to={path}
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-sm transition-all ${
                     active
-                      ? 'bg-white text-purple-600 shadow-lg shadow-purple-900/50'
-                      : 'text-purple-100 hover:bg-white/10'
-                  }`}
-                >
-                  <Icon className={`w-5 h-5 ${active ? 'text-purple-600' : ''}`} />
-                  <span>{item.label}</span>
+                      ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/30'
+                      : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                  }`}>
+                  <Icon className="w-4.5 h-4.5 flex-shrink-0 w-5 h-5" />
+                  {label}
                 </Link>
               );
             })}
-          </nav>
+          </div>
+        </nav>
 
-          {/* User Profile */}
-          <div className="p-4 border-t border-white/10">
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 mb-3">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-pink-400 to-purple-400 flex items-center justify-center font-bold text-white">
-                  {user?.firstName?.[0]}{user?.lastName?.[0]}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-sm truncate">
-                    {user?.firstName} {user?.lastName}
-                  </p>
-                  <p className="text-xs text-purple-200 truncate">{user?.email}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2 text-xs">
-                <span className="px-2 py-1 bg-purple-500/30 rounded-full">
-                  {isAdmin ? '🔑 Admin' : isPhotographe ? '📷 Photographe' : '👷 Employé'}
-                </span>
-              </div>
+        {/* User */}
+        <div className="p-4 border-t border-white/5 space-y-2">
+          <Link to="/profile" className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 transition-colors group">
+            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+              {user?.firstName?.[0]}{user?.lastName?.[0]}
             </div>
-            
-            <button
-              onClick={handleLogout}
-              className="w-full flex items-center justify-center gap-2 bg-red-500/20 hover:bg-red-500/30 text-white px-4 py-3 rounded-xl font-medium transition-colors"
-            >
-              <ArrowLeftOnRectangleIcon className="w-5 h-5" />
-              <span>Déconnexion</span>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-white truncate">{user?.firstName} {user?.lastName}</p>
+              <p className="text-[11px] text-gray-400 truncate">{user?.email}</p>
+            </div>
+          </Link>
+          <div className="flex gap-2">
+            <Link to="/"
+              className="flex-1 flex items-center justify-center gap-2 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 text-xs font-medium transition-colors">
+              <HomeIcon className="w-4 h-4" />Site
+            </Link>
+            <button onClick={() => { logout(); navigate('/login'); }}
+              className="flex-1 flex items-center justify-center gap-2 py-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs font-medium transition-colors">
+              <ArrowLeftOnRectangleIcon className="w-4 h-4" />Quitter
             </button>
           </div>
         </div>
       </aside>
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Top Header */}
-        <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-30">
-          <div className="px-4 lg:px-8 py-4">
-            <div className="flex items-center justify-between gap-4">
-              {/* Mobile menu button */}
-              <button
-                onClick={() => setSidebarOpen(!sidebarOpen)}
-                className="lg:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
-              >
-                {sidebarOpen ? (
-                  <XMarkIcon className="w-6 h-6" />
-                ) : (
-                  <Bars3Icon className="w-6 h-6" />
-                )}
+      {/* ── Main ─────────────────────────────────────────────────────── */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        {/* Header */}
+        <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 sticky top-0 z-30 flex-shrink-0">
+          <div className="flex items-center justify-between px-4 h-14">
+            <div className="flex items-center gap-3">
+              <button onClick={() => setSidebarOpen(true)}
+                className="lg:hidden p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+                <Bars3Icon className="w-5 h-5" />
               </button>
-
-              {/* Search bar */}
-              <div className="flex-1 max-w-xl hidden md:block">
-                <div className="relative">
-                  <MagnifyingGlassIcon className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                  <input
-                    type="text"
-                    placeholder="Rechercher..."
-                    className="w-full pl-10 pr-4 py-2 border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  />
-                </div>
-              </div>
-
-              {/* Actions */}
-              <div className="flex items-center gap-2">
-                <button className="relative p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
-                  <BellIcon className="w-6 h-6" />
-                  <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-                </button>
-                
-                <Link
-                  to="/"
-                  className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-sm font-medium"
-                >
-                  <HomeIcon className="w-5 h-5" />
-                  <span>Voir le site</span>
-                </Link>
-              </div>
+              {/* Breadcrumb courant */}
+              <h2 className="text-sm font-semibold text-gray-900 dark:text-white hidden sm:block">
+                {visibleItems.find(i => isActive(i.path, i.exact))?.label ?? 'Administration'}
+              </h2>
+            </div>
+            <div className="flex items-center gap-2">
+              <button className="relative p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+                <BellIcon className="w-5 h-5 text-gray-500" />
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white dark:ring-gray-900" />
+              </button>
+              <Link to="/profile"
+                className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white text-xs font-bold">
+                {user?.firstName?.[0]}{user?.lastName?.[0]}
+              </Link>
             </div>
           </div>
         </header>
 
-        {/* Page Content */}
-        <main className="flex-1 overflow-y-auto">
+        {/* Content */}
+        <main className="flex-1 overflow-y-auto pb-20 lg:pb-0">
           <Notification />
           <Outlet />
         </main>
       </div>
+
+      {/* ── Mobile Bottom Tabs ────────────────────────────────────────── */}
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-gray-950 border-t border-gray-100 dark:border-gray-800">
+        <div className="flex">
+          {bottomItems.map(({ path, label, Icon, exact }) => {
+            const active = isActive(path, exact);
+            return (
+              <Link key={path} to={path}
+                className={`flex-1 flex flex-col items-center justify-center py-2 gap-0.5 transition-all active:scale-95 ${
+                  active ? 'text-amber-500' : 'text-gray-400 dark:text-gray-500'
+                }`}>
+                <div className={`p-1 rounded-xl ${active ? 'bg-amber-50 dark:bg-amber-500/10' : ''}`}>
+                  <Icon className="w-5 h-5" />
+                </div>
+                <span className="text-[10px] font-medium leading-none">{label}</span>
+              </Link>
+            );
+          })}
+        </div>
+      </nav>
     </div>
   );
 };

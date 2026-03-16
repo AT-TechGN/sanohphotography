@@ -15,6 +15,7 @@ import RegisterPage  from '../pages/RegisterPage';
 
 // Pages client
 import ClientDashboard from '../pages/ClientDashboard';
+import ProfilePage     from '../pages/ProfilePage';
 
 // Pages admin
 import AdminDashboard        from '../pages/AdminDashboard';
@@ -64,6 +65,18 @@ const AppRouter = () => {
           element={<MainLayout hideNavbar hideFooter />}
         >
           <Route index element={<BookingPage />} />
+        </Route>
+
+        {/* ── Profil utilisateur ───────────────────────────────── */}
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <MainLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<ProfilePage />} />
         </Route>
 
         {/* ── Dashboard client ──────────────────────────────────── */}
