@@ -12,11 +12,8 @@ import {
 } from '@heroicons/react/24/outline';
 import { StarIcon as StarSolidIcon } from '@heroicons/react/24/solid';
 
-// ─────────────────────────────────────────────────────────────────────────────
-// COMPOSANTS EXTRAITS — Solution définitive au bug insertBefore.
-// Chaque composant a un type React stable → React ne perd jamais
-// la référence DOM lors des re-renders conditionnels.
-// ─────────────────────────────────────────────────────────────────────────────
+// Fallback SVG inline — aucune dépendance externe, fonctionne hors ligne
+const PHOTO_FALLBACK = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300' viewBox='0 0 300 300'%3E%3Crect width='300' height='300' fill='%23f3f4f6'/%3E%3Crect x='1' y='1' width='298' height='298' fill='none' stroke='%23e5e7eb' stroke-width='1'/%3E%3Ccircle cx='150' cy='115' r='35' fill='%23d1d5db'/%3E%3Cellipse cx='150' cy='210' rx='60' ry='40' fill='%23d1d5db'/%3E%3Ccircle cx='210' cy='80' r='18' fill='%23fbbf24' opacity='.7'/%3E%3Ctext x='150' y='265' font-family='sans-serif' font-size='13' fill='%239ca3af' text-anchor='middle'%3ESans image%3C/text%3E%3C/svg%3E`;
 
 const UploadButton = ({ uploading, onFileChange }) => (
   <div>
@@ -46,7 +43,10 @@ const PhotoCard = ({ photo, onToggleFeatured, onDelete }) => (
     <img
       src={photo.filePath?.startsWith('http') ? photo.filePath : `${API_ASSETS_BASE}${photo.filePath}`} alt={photo.originalFilename || 'Photo'}
       className="w-full h-full object-cover" loading="lazy"
-      onError={(e) => { e.currentTarget.src = 'https://via.placeholder.com/300?text=Image'; }}
+      onError={(e) => {
+        e.currentTarget.onerror = null; // évite la boucle infinie si le fallback échoue aussi
+        e.currentTarget.src = PHOTO_FALLBACK;
+      }}
     />
     <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2">
       <div className="flex items-center gap-2">
