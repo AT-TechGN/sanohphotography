@@ -382,37 +382,56 @@ final class BookingController extends AbstractController
     {
         $this->denyAccessUnlessGranted('ROLE_PHOTOGRAPHE');
 
-        $status    = $request->query->get('status');
-        $startDate = $request->query->get('start_date');
-        $endDate   = $request->query->get('end_date');
+        try {
+            $status    = $request->query->get('status');
+            $startDate = $request->query->get('start_date');
+            $endDate   = $request->query->get('end_date');
 
-        // JOIN FETCH pour éviter le lazy loading N+1 et les exceptions d'association
-        $qb = $this->bookingRepository->createQueryBuilder('b')
-            ->addSelect('client', 'service', 'employee', 'empUser')
-            ->leftJoin('b.client',   'client')
-            ->leftJoin('b.service',  'service')
-            ->leftJoin('b.employee', 'employee')
-            ->leftJoin('employee.user', 'empUser')
-            ->orderBy('b.bookingDate', 'DESC')
-            ->addOrderBy('b.startTime', 'DESC');
+            $qb = $this->bookingRepository->createQueryBuilder('b')
+                ->addSelect('client', 'service', 'employee', 'empUser')
+                ->leftJoin('b.client',      'client')
+                ->leftJoin('b.service',     'service')
+                ->leftJoin('b.employee',    'employee')
+                ->leftJoin('employee.user', 'empUser')
+                ->orderBy('b.bookingDate', 'DESC')
+                ->addOrderBy('b.startTime', 'DESC');
 
-        if ($status && $status !== 'all') {
-            $qb->andWhere('b.status = :status')->setParameter('status', $status);
+            if ($status && $status !== 'all') {
+                $qb->andWhere('b.status = :status')
+                   ->setParameter('status', $status);
+            }
+            if ($startDate) {
+                $qb->andWhere('b.bookingDate >= :start')
+                   ->setParameter('start', new \DateTime($startDate));
+            }
+            if ($endDate) {
+                $qb->andWhere('b.bookingDate <= :end')
+                   ->setParameter('end', new \DateTime($endDate));
+            }
+
+            $bookings = $qb->getQuery()->getResult();
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'error'   => 'Erreur chargement réservations',
+                'message' => $e->getMessage(),
+                'trace'   => substr($e->getTraceAsString(), 0, 500),
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
-        if ($startDate) {
+
+        $serialized = [];
+        foreach ($bookings as $booking) {
             try {
-                $qb->andWhere('b.bookingDate >= :start')->setParameter('start', new \DateTime($startDate));
-            } catch (\Exception) {}
-        }
-        if ($endDate) {
-            try {
-                $qb->andWhere('b.bookingDate <= :end')->setParameter('end', new \DateTime($endDate));
-            } catch (\Exception) {}
+                $serialized[] = $this->serializeBooking($booking);
+            } catch (\Exception $e) {
+                $serialized[] = [
+                    'id'    => $booking->getId(),
+                    'error' => $e->getMessage(),
+                ];
+            }
         }
 
-        $bookings = $qb->getQuery()->getResult();
-
-        return $this->json(array_map([$this, 'serializeBooking'], $bookings));
+        return $this->json($serialized);
     }
 
     /**
