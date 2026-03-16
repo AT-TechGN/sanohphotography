@@ -12,6 +12,7 @@ import {
   mockReviews
 } from '../data/homepageMocks';
 import { CameraIcon } from '@heroicons/react/24/outline';
+import ContactSection from '../components/common/ContactSection';
 
 
 // Helper : construit l'URL absolue d'une photo uploadée sur Symfony
@@ -554,6 +555,9 @@ const HomePage = () => {
           </div>
         </div>
       </Motion.section>
+
+      {/* ── CONTACT & LOCALISATION ────────────────────────────────────── */}
+      <ContactSection />
 
     </div>
   );
