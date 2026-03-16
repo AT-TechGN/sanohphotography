@@ -1,22 +1,13 @@
-# yaml-language-server: $schema=../vendor/symfony/routing/Loader/schema/routing.schema.json
-
-# This file is the entry point to configure the routes of your app.
-# Methods with the #[Route] attribute are automatically imported.
-# See also https://symfony.com/doc/current/routing.html
-
-# To list all registered routes, run the following command:
-#   bin/console debug:router
+# Routes de l'application SanohPhotography
+#
+# IMPORTANT : Tous les controllers utilisent des attributs PHP #[Route].
+# Le MicroKernelTrait de Symfony les découvre automatiquement.
+# Ce fichier ne charge que les routes manuelles (login JWT).
 
 controllers:
     resource: routing.controllers
 
-api_gallery:
-    resource: routes/api_gallery.yaml
-    prefix: /api
-
-admin_photo:
-    resource: routes/admin_photo.yaml
-
-admin_album:
-    resource: routes/admin_album.yaml
-
+# Route login JWT (gérée par LexikJWTBundle, pas de controller PHP)
+api_login_check:
+    path: /api/login
+    methods: [POST]

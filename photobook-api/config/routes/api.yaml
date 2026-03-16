@@ -1,9 +1,3 @@
-# Routes API pour l'authentification
-api_login:
-    path: /api/login
-    methods: [POST]
-
-api_register:
-    path: /api/register
-    controller: App\Controller\Api\AuthController::register
-    methods: [POST]
+# Routes manuelles complémentaires
+# La route /api/login est définie dans routes.yaml (LexikJWT)
+# /api/register est géré par AuthController via #[Route('/api/register')]
