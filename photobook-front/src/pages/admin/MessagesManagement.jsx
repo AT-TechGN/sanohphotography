@@ -9,11 +9,185 @@ import {
 } from '@heroicons/react/24/outline';
 
 /* ── Helpers ─────────────────────────────────────────────────────────────── */
-const fmtDate = (d) => d
-  ? new Date(d).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
-  : '—';
+const fmtDate = (d) => {
+  if (!d) return '—';
+  return new Date(d).toLocaleDateString('fr-FR', {
+    day: 'numeric', month: 'short', year: 'numeric',
+    hour: '2-digit', minute: '2-digit',
+  });
+};
 
-const initials = (name = '') => name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+const fmtShort = (d) => {
+  if (!d) return '';
+  return new Date(d).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+};
+
+const getInitials = (name = '') =>
+  name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2) || '?';
+
+/* ── MessageItem — composant stable pour éviter removeChild ─────────────── */
+const MessageItem = ({ msg, isSelected, onClick }) => (
+  <button
+    type="button"
+    onClick={() => onClick(msg)}
+    className={[
+      'w-full text-left p-4 rounded-2xl border transition-all',
+      isSelected
+        ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-400'
+        : 'bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700 hover:border-amber-300 dark:hover:border-amber-500/50',
+    ].join(' ')}
+  >
+    <div className="flex items-start gap-3">
+      <div className={[
+        'w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0',
+        msg.isRead ? 'bg-gray-100 dark:bg-gray-700 text-gray-500' : 'bg-amber-500 text-white',
+      ].join(' ')}>
+        {getInitials(msg.senderName)}
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center justify-between gap-2 mb-0.5">
+          <span className={[
+            'text-sm font-semibold truncate',
+            msg.isRead ? 'text-gray-700 dark:text-gray-300' : 'text-gray-900 dark:text-white',
+          ].join(' ')}>
+            {msg.senderName}
+          </span>
+          <span className="text-xs text-gray-400 flex-shrink-0">{fmtShort(msg.createdAt)}</span>
+        </div>
+        <p className={[
+          'text-xs truncate mb-1',
+          msg.isRead ? 'text-gray-500' : 'text-amber-600 dark:text-amber-400 font-medium',
+        ].join(' ')}>
+          {msg.subject}
+        </p>
+        <p className="text-xs text-gray-400 dark:text-gray-500 truncate">{msg.body}</p>
+        <div className="flex items-center gap-2 mt-1.5">
+          {!msg.isRead && <span className="w-2 h-2 bg-amber-500 rounded-full inline-block" />}
+          {msg.replyBody && (
+            <span className="text-[10px] px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full font-medium">
+              ✓ Répondu
+            </span>
+          )}
+        </div>
+      </div>
+    </div>
+  </button>
+);
+
+/* ── MessageDetail — panneau de détail stable ────────────────────────────── */
+const MessageDetail = ({ msg, onClose, onDelete, onReply, deleting }) => {
+  const [replyText, setReplyText] = useState(msg.replyBody ?? '');
+  const [replying, setReplying]   = useState(false);
+  const { showSuccess, showError } = useUIStore();
+
+  const handleReply = async () => {
+    if (!replyText.trim()) return;
+    setReplying(true);
+    try {
+      const res = await contactService.reply(msg.id, replyText);
+      showSuccess('Réponse envoyée !');
+      onReply(res.contact);
+    } catch (err) {
+      showError(err.response?.data?.error || 'Erreur envoi réponse');
+    } finally {
+      setReplying(false);
+    }
+  };
+
+  return (
+    <div className="flex flex-col h-full bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden">
+      {/* Header */}
+      <div className="flex items-center gap-3 p-5 border-b border-gray-100 dark:border-gray-700 flex-shrink-0">
+        <div className="w-11 h-11 rounded-full bg-amber-500 flex items-center justify-center text-white font-bold flex-shrink-0">
+          {getInitials(msg.senderName)}
+        </div>
+        <div className="flex-1 min-w-0">
+          <h3 className="font-bold text-gray-900 dark:text-white truncate">{msg.senderName}</h3>
+          <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{msg.senderEmail}</p>
+        </div>
+        <div className="flex items-center gap-1 flex-shrink-0">
+          <button
+            type="button"
+            onClick={() => onDelete(msg.id)}
+            disabled={deleting === msg.id}
+            title="Supprimer"
+            className="p-2 rounded-xl text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+          >
+            <TrashIcon className="w-4 h-4" />
+          </button>
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-2 rounded-xl text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors lg:hidden"
+          >
+            <XMarkIcon className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+
+      {/* Corps scrollable */}
+      <div className="flex-1 overflow-y-auto p-5 space-y-5">
+        <div>
+          <h4 className="font-semibold text-gray-900 dark:text-white text-lg mb-1">{msg.subject}</h4>
+          <p className="text-xs text-gray-400 flex items-center gap-1.5">
+            <ClockIcon className="w-3.5 h-3.5" />
+            {fmtDate(msg.createdAt)}
+          </p>
+        </div>
+
+        <div className="bg-gray-50 dark:bg-gray-700/50 rounded-2xl p-4">
+          <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">Message</p>
+          <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed whitespace-pre-wrap">
+            {msg.body}
+          </p>
+        </div>
+
+        {msg.replyBody && (
+          <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/50 rounded-2xl p-4">
+            <p className="text-xs font-semibold uppercase tracking-wider text-amber-600 dark:text-amber-400 mb-3 flex items-center gap-2">
+              <CheckCircleIcon className="w-4 h-4" />
+              Votre réponse · {fmtDate(msg.repliedAt)}
+            </p>
+            <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed whitespace-pre-wrap">
+              {msg.replyBody}
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* Zone réponse */}
+      <div className="border-t border-gray-100 dark:border-gray-700 p-5 flex-shrink-0">
+        <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">
+          {msg.replyBody ? 'Modifier la réponse' : 'Répondre'}
+        </p>
+        <textarea
+          rows={4}
+          value={replyText}
+          onChange={e => setReplyText(e.target.value)}
+          placeholder={`Bonjour ${msg.senderName?.split(' ')[0]},\n\nMerci pour votre message…`}
+          className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-amber-500 focus:border-transparent resize-none"
+        />
+        <div className="flex items-center justify-between mt-3 gap-3">
+          <p className="text-xs text-gray-400 hidden sm:block">
+            Réponse sauvegardée en base de données
+          </p>
+          <button
+            type="button"
+            onClick={handleReply}
+            disabled={replying || !replyText.trim()}
+            className="flex items-center gap-2 px-5 py-2.5 bg-amber-500 text-white rounded-xl text-sm font-semibold hover:bg-amber-400 disabled:opacity-50 transition-all ml-auto"
+          >
+            {replying
+              ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              : <PaperAirplaneIcon className="w-4 h-4" />
+            }
+            {replying ? 'Envoi…' : 'Envoyer'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 /* ── Composant principal ─────────────────────────────────────────────────── */
 export default function MessagesManagement() {
@@ -22,10 +196,8 @@ export default function MessagesManagement() {
   const [messages,  setMessages]  = useState([]);
   const [loading,   setLoading]   = useState(true);
   const [search,    setSearch]    = useState('');
-  const [filter,    setFilter]    = useState('all'); // all | unread | replied
-  const [selected,  setSelected]  = useState(null);  // message ouvert
-  const [replyText, setReplyText] = useState('');
-  const [replying,  setReplying]  = useState(false);
+  const [filter,    setFilter]    = useState('all');
+  const [selected,  setSelected]  = useState(null);
   const [deleting,  setDeleting]  = useState(null);
 
   const load = useCallback(async () => {
@@ -33,36 +205,29 @@ export default function MessagesManagement() {
       setLoading(true);
       const data = await contactService.getAll();
       setMessages(Array.isArray(data) ? data : []);
-    } catch { showError('Erreur chargement messages'); }
-    finally  { setLoading(false); }
+    } catch {
+      showError('Erreur chargement messages');
+    } finally {
+      setLoading(false);
+    }
   }, [showError]);
 
   useEffect(() => { load(); }, [load]);
 
-  // Marquer comme lu quand on ouvre
   const openMessage = async (msg) => {
     setSelected(msg);
-    setReplyText('');
     if (!msg.isRead) {
       try {
         await contactService.markAsRead(msg.id);
         setMessages(prev => prev.map(m => m.id === msg.id ? { ...m, isRead: true } : m));
+        setSelected(prev => prev?.id === msg.id ? { ...prev, isRead: true } : prev);
       } catch { /* silencieux */ }
     }
   };
 
-  const handleReply = async () => {
-    if (!replyText.trim() || !selected) return;
-    setReplying(true);
-    try {
-      const res = await contactService.reply(selected.id, replyText);
-      showSuccess('Réponse envoyée !');
-      setMessages(prev => prev.map(m => m.id === selected.id ? res.contact : m));
-      setSelected(res.contact);
-      setReplyText('');
-    } catch (err) {
-      showError(err.response?.data?.error || 'Erreur envoi réponse');
-    } finally { setReplying(false); }
+  const handleReply = (updatedContact) => {
+    setMessages(prev => prev.map(m => m.id === updatedContact.id ? updatedContact : m));
+    setSelected(updatedContact);
   };
 
   const handleDelete = async (id) => {
@@ -72,19 +237,21 @@ export default function MessagesManagement() {
       showSuccess('Message supprimé');
       setMessages(prev => prev.filter(m => m.id !== id));
       if (selected?.id === id) setSelected(null);
-    } catch { showError('Erreur suppression'); }
-    finally  { setDeleting(null); }
+    } catch {
+      showError('Erreur suppression');
+    } finally {
+      setDeleting(null);
+    }
   };
 
-  // Filtrage + recherche
   const filtered = messages.filter(m => {
     if (filter === 'unread'  && m.isRead)     return false;
     if (filter === 'replied' && !m.replyBody) return false;
     if (search) {
       const s = search.toLowerCase();
-      return m.senderName?.toLowerCase().includes(s)
-          || m.senderEmail?.toLowerCase().includes(s)
-          || m.subject?.toLowerCase().includes(s);
+      return (m.senderName  ?? '').toLowerCase().includes(s)
+          || (m.senderEmail ?? '').toLowerCase().includes(s)
+          || (m.subject     ?? '').toLowerCase().includes(s);
     }
     return true;
   });
@@ -92,10 +259,10 @@ export default function MessagesManagement() {
   const unreadCount = messages.filter(m => !m.isRead).length;
 
   return (
-    <div className="h-full flex flex-col p-3 sm:p-4 lg:p-6 gap-4">
+    <div className="flex flex-col h-full p-3 sm:p-4 lg:p-6 gap-4 min-h-0">
 
-      {/* ── Header ─────────────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between gap-3 flex-wrap">
+      {/* Header */}
+      <div className="flex items-center justify-between gap-3 flex-wrap flex-shrink-0">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
             <EnvelopeIcon className="w-7 h-7 text-amber-500" />
@@ -110,19 +277,24 @@ export default function MessagesManagement() {
             {messages.length} message{messages.length !== 1 ? 's' : ''} · {unreadCount} non lu{unreadCount !== 1 ? 's' : ''}
           </p>
         </div>
-        <button onClick={load}
-          className="px-4 py-2 bg-amber-500 text-white rounded-xl text-sm font-medium hover:bg-amber-400 transition-colors">
+        <button
+          type="button"
+          onClick={load}
+          className="px-4 py-2 bg-amber-500 text-white rounded-xl text-sm font-medium hover:bg-amber-400 transition-colors"
+        >
           Actualiser
         </button>
       </div>
 
-      {/* ── Filtres + recherche ────────────────────────────────────────── */}
-      <div className="flex flex-col sm:flex-row gap-3">
+      {/* Filtres */}
+      <div className="flex flex-col sm:flex-row gap-3 flex-shrink-0">
         <div className="relative flex-1">
           <MagnifyingGlassIcon className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
-            type="text" placeholder="Rechercher un message…"
-            value={search} onChange={e => setSearch(e.target.value)}
+            type="text"
+            placeholder="Rechercher…"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
             className="w-full pl-9 pr-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-amber-500 focus:border-transparent text-gray-900 dark:text-white"
           />
         </div>
@@ -132,194 +304,89 @@ export default function MessagesManagement() {
             { id: 'unread',  label: 'Non lus'  },
             { id: 'replied', label: 'Répondus' },
           ].map(({ id, label }) => (
-            <button key={id} onClick={() => setFilter(id)}
-              className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
+            <button
+              key={id}
+              type="button"
+              onClick={() => setFilter(id)}
+              className={[
+                'px-4 py-2.5 rounded-xl text-sm font-medium transition-all',
                 filter === id
                   ? 'bg-amber-500 text-white shadow-md shadow-amber-500/30'
-                  : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-amber-400'
-              }`}>
+                  : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-amber-400',
+              ].join(' ')}
+            >
               {label}
             </button>
           ))}
         </div>
       </div>
 
-      {/* ── Corps : liste + détail ─────────────────────────────────────── */}
-      <div className="flex-1 flex gap-4 min-h-0 overflow-hidden">
+      {/* Corps split */}
+      <div className="flex gap-4 flex-1 min-h-0 overflow-hidden">
 
-        {/* Liste messages */}
-        <div className={`flex flex-col gap-2 overflow-y-auto ${selected ? 'hidden lg:flex lg:w-80 xl:w-96 flex-shrink-0' : 'w-full'}`}>
+        {/* Liste — cachée sur mobile si un message est sélectionné */}
+        <div className={[
+          'flex flex-col gap-2 overflow-y-auto flex-shrink-0',
+          selected ? 'hidden lg:flex lg:w-80 xl:w-96' : 'w-full',
+        ].join(' ')}>
           {loading ? (
-            <div className="flex-1 flex items-center justify-center py-12">
-              <div className="w-8 h-8 border-3 border-amber-500 border-t-transparent rounded-full animate-spin" />
+            <div className="flex items-center justify-center py-12">
+              <span className="w-8 h-8 border-3 border-amber-500 border-t-transparent rounded-full animate-spin" />
             </div>
           ) : filtered.length === 0 ? (
             <div className="text-center py-16">
               <EnvelopeIcon className="w-12 h-12 text-gray-300 mx-auto mb-3" />
               <p className="text-gray-500 dark:text-gray-400">Aucun message</p>
             </div>
-          ) : filtered.map(msg => (
-            <Motion.button key={msg.id}
-              initial={{ opacity: 0, y: 4 }}
-              animate={{ opacity: 1, y: 0 }}
-              onClick={() => openMessage(msg)}
-              className={`w-full text-left p-4 rounded-2xl border transition-all ${
-                selected?.id === msg.id
-                  ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-400'
-                  : 'bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700 hover:border-amber-300 dark:hover:border-amber-500/50'
-              }`}
-            >
-              <div className="flex items-start gap-3">
-                {/* Avatar */}
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 ${
-                  msg.isRead
-                    ? 'bg-gray-100 dark:bg-gray-700 text-gray-500'
-                    : 'bg-amber-500 text-white'
-                }`}>
-                  {initials(msg.senderName)}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between gap-2 mb-0.5">
-                    <span className={`text-sm font-semibold truncate ${msg.isRead ? 'text-gray-700 dark:text-gray-300' : 'text-gray-900 dark:text-white'}`}>
-                      {msg.senderName}
-                    </span>
-                    <span className="text-xs text-gray-400 flex-shrink-0">
-                      {new Date(msg.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
-                    </span>
-                  </div>
-                  <p className={`text-xs truncate mb-1 ${msg.isRead ? 'text-gray-500' : 'text-amber-600 dark:text-amber-400 font-medium'}`}>
-                    {msg.subject}
-                  </p>
-                  <p className="text-xs text-gray-400 dark:text-gray-500 truncate">{msg.body}</p>
-                  <div className="flex items-center gap-2 mt-2">
-                    {!msg.isRead && (
-                      <span className="w-2 h-2 bg-amber-500 rounded-full" />
-                    )}
-                    {msg.replyBody && (
-                      <span className="text-[10px] px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full font-medium">
-                        ✓ Répondu
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </Motion.button>
-          ))}
+          ) : (
+            filtered.map(msg => (
+              <MessageItem
+                key={msg.id}
+                msg={msg}
+                isSelected={selected?.id === msg.id}
+                onClick={openMessage}
+              />
+            ))
+          )}
         </div>
 
-        {/* Détail message */}
-        <AnimatePresence mode="wait">
-          {selected && (
-            <Motion.div
-              key={selected.id}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              transition={{ duration: 0.2 }}
-              className="flex-1 flex flex-col min-h-0 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden"
-            >
-              {/* Header détail */}
-              <div className="flex items-center gap-3 p-5 border-b border-gray-100 dark:border-gray-700 flex-shrink-0">
-                <div className="w-11 h-11 rounded-full bg-amber-500 flex items-center justify-center text-white font-bold">
-                  {initials(selected.senderName)}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-bold text-gray-900 dark:text-white">{selected.senderName}</h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{selected.senderEmail}</p>
-                </div>
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  <button
-                    onClick={() => handleDelete(selected.id)}
-                    disabled={deleting === selected.id}
-                    className="p-2 rounded-xl text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-                    title="Supprimer"
-                  >
-                    <TrashIcon className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => setSelected(null)}
-                    className="p-2 rounded-xl text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors lg:hidden"
-                  >
-                    <XMarkIcon className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-
-              {/* Corps scrollable */}
-              <div className="flex-1 overflow-y-auto p-5 space-y-5">
-                {/* Sujet + date */}
-                <div>
-                  <h4 className="font-semibold text-gray-900 dark:text-white text-lg mb-1">{selected.subject}</h4>
-                  <p className="text-xs text-gray-400 flex items-center gap-1.5">
-                    <ClockIcon className="w-3.5 h-3.5" />
-                    {fmtDate(selected.createdAt)}
-                  </p>
-                </div>
-
-                {/* Message original */}
-                <div className="bg-gray-50 dark:bg-gray-700/50 rounded-2xl p-4">
-                  <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">Message</p>
-                  <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed whitespace-pre-wrap">
-                    {selected.body}
-                  </p>
-                </div>
-
-                {/* Réponse existante */}
-                {selected.replyBody && (
-                  <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/50 rounded-2xl p-4">
-                    <p className="text-xs font-semibold uppercase tracking-wider text-amber-600 dark:text-amber-400 mb-3 flex items-center gap-2">
-                      <CheckCircleIcon className="w-4 h-4" />
-                      Votre réponse · {fmtDate(selected.repliedAt)}
-                    </p>
-                    <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed whitespace-pre-wrap">
-                      {selected.replyBody}
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              {/* Zone réponse */}
-              <div className="border-t border-gray-100 dark:border-gray-700 p-5 flex-shrink-0">
-                <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">
-                  {selected.replyBody ? 'Modifier la réponse' : 'Répondre'}
-                </p>
-                <textarea
-                  rows={4}
-                  value={replyText}
-                  onChange={e => setReplyText(e.target.value)}
-                  placeholder={`Bonjour ${selected.senderName?.split(' ')[0]},\n\nMerci pour votre message…`}
-                  className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-amber-500 focus:border-transparent resize-none"
+        {/* Détail — AnimatePresence correctement wrappé */}
+        <div className="flex-1 min-h-0 min-w-0">
+          <AnimatePresence mode="wait">
+            {selected ? (
+              <Motion.div
+                key={`detail-${selected.id}`}
+                initial={{ opacity: 0, x: 16 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 16 }}
+                transition={{ duration: 0.18 }}
+                className="h-full"
+              >
+                <MessageDetail
+                  msg={selected}
+                  onClose={() => setSelected(null)}
+                  onDelete={handleDelete}
+                  onReply={handleReply}
+                  deleting={deleting}
                 />
-                <div className="flex items-center justify-between mt-3">
-                  <p className="text-xs text-gray-400">
-                    La réponse est sauvegardée · En attente de configuration email
-                  </p>
-                  <button
-                    onClick={handleReply}
-                    disabled={replying || !replyText.trim()}
-                    className="flex items-center gap-2 px-5 py-2.5 bg-amber-500 text-white rounded-xl text-sm font-semibold hover:bg-amber-400 disabled:opacity-50 transition-all"
-                  >
-                    {replying
-                      ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      : <PaperAirplaneIcon className="w-4 h-4" />
-                    }
-                    {replying ? 'Envoi…' : 'Envoyer'}
-                  </button>
+              </Motion.div>
+            ) : (
+              <Motion.div
+                key="placeholder"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="hidden lg:flex h-full items-center justify-center bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700"
+              >
+                <div className="text-center">
+                  <EnvelopeOpenIcon className="w-14 h-14 text-gray-200 dark:text-gray-600 mx-auto mb-3" />
+                  <p className="text-gray-400 dark:text-gray-500 text-sm">Sélectionnez un message</p>
                 </div>
-              </div>
-            </Motion.div>
-          )}
-        </AnimatePresence>
+              </Motion.div>
+            )}
+          </AnimatePresence>
+        </div>
 
-        {/* Placeholder quand rien sélectionné sur desktop */}
-        {!selected && !loading && filtered.length > 0 && (
-          <div className="hidden lg:flex flex-1 items-center justify-center bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700">
-            <div className="text-center">
-              <EnvelopeOpenIcon className="w-14 h-14 text-gray-200 dark:text-gray-600 mx-auto mb-3" />
-              <p className="text-gray-400 dark:text-gray-500">Sélectionnez un message</p>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

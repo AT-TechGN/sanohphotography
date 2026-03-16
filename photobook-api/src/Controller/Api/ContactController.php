@@ -146,7 +146,7 @@ final class ContactController extends AbstractController
             'senderEmail' => $m->getSenderEmail(),
             'subject'     => $m->getSubject(),
             'body'        => $m->getBody(),
-            'isRead'      => $m->isIsRead(),
+            'isRead'      => $m->isRead(),
             'replyBody'   => $m->getReplyBody(),
             'repliedAt'   => $m->getRepliedAt()?->format('c'),
             'createdAt'   => $m->getCreatedAt()?->format('c'),
