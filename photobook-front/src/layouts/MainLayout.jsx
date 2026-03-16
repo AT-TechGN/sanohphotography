@@ -5,7 +5,7 @@ import Notification from '../components/common/Notification';
 
 const MainLayout = ({ hideNavbar = false, hideFooter = false }) => {
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen pb-16 md:pb-0">
       {!hideNavbar && <Navbar />}
       <Notification />
       <main className="flex-grow">

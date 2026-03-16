@@ -165,7 +165,7 @@ const ReviewsModeration = () => {
           { label: 'En attente', value: stats.pending,  color: 'from-yellow-500 to-yellow-600' },
           { label: 'Approuvés',  value: stats.approved, color: 'from-green-500 to-green-600'  },
           { label: 'Rejetés',    value: stats.rejected, color: 'from-red-500 to-red-600'      },
-          { label: 'Total',      value: stats.total,    color: 'from-purple-500 to-purple-600' },
+          { label: 'Total',      value: stats.total,    color: 'from-amber-500 to-amber-600' },
         ].map(({ label, value, color }) => (
           <div key={label} className={`bg-gradient-to-br ${color} rounded-2xl p-5 text-white shadow-lg`}>
             <p className="text-white/80 text-sm">{label}</p>
@@ -177,7 +177,7 @@ const ReviewsModeration = () => {
       {/* Filters */}
       <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm">
         <div className="flex items-center gap-2 mb-4">
-          <FunnelIcon className="w-5 h-5 text-purple-600" />
+          <FunnelIcon className="w-5 h-5 text-amber-600" />
           <h3 className="font-semibold text-gray-900 dark:text-white">Filtres</h3>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -191,7 +191,7 @@ const ReviewsModeration = () => {
               onClick={() => setFilter(item.value)}
               className={`px-4 py-2 rounded-lg font-medium transition-all ${
                 filter === item.value
-                  ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg'
+                  ? 'bg-gradient-to-r from-amber-600 to-orange-600 text-white shadow-lg'
                   : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
               }`}
             >
@@ -205,7 +205,7 @@ const ReviewsModeration = () => {
       <div className="space-y-4">
         {loading ? (
           <div className="bg-white dark:bg-gray-800 rounded-2xl p-12 text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto" />
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-600 mx-auto" />
             <p className="mt-4 text-gray-500">Chargement...</p>
           </div>
         ) : reviews.length === 0 ? (
@@ -219,7 +219,7 @@ const ReviewsModeration = () => {
               <div className="flex flex-col lg:flex-row lg:items-start gap-6">
                 {/* Client Info */}
                 <div className="flex items-start gap-4 lg:w-1/3">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white font-bold flex-shrink-0">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-400 to-orange-400 flex items-center justify-center text-white font-bold flex-shrink-0">
                     {review.client?.firstName?.[0]}{review.client?.lastName?.[0]}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -246,8 +246,8 @@ const ReviewsModeration = () => {
                     {review.comment || review.content}
                   </p>
                   {review.service && (
-                    <div className="mt-3 inline-flex items-center gap-2 px-3 py-1 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                      <span className="text-sm text-purple-700 dark:text-purple-400">
+                    <div className="mt-3 inline-flex items-center gap-2 px-3 py-1 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
+                      <span className="text-sm text-amber-700 dark:text-amber-400">
                         Service: {review.service?.name || review.service}
                       </span>
                     </div>

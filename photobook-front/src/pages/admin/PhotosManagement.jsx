@@ -28,7 +28,7 @@ const UploadButton = ({ uploading, onFileChange }) => (
     />
     <label
       htmlFor="photo-upload"
-      className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-medium hover:shadow-lg transition-all cursor-pointer select-none"
+      className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-amber-600 to-orange-600 text-white rounded-xl font-medium hover:shadow-lg transition-all cursor-pointer select-none"
     >
       <span className="w-5 h-5 flex items-center justify-center flex-shrink-0">
         {uploading
@@ -71,8 +71,8 @@ const PhotoCard = ({ photo, onToggleFeatured, onDelete }) => (
 
 const AlbumCard = ({ album, onView, onEdit, onDelete, formatDate }) => (
   <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-md transition-all overflow-hidden group">
-    <div className="aspect-square bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 flex items-center justify-center relative">
-      <FolderIcon className="w-20 h-20 text-purple-300 dark:text-purple-600" />
+    <div className="aspect-square bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-900/30 dark:to-orange-900/30 flex items-center justify-center relative">
+      <FolderIcon className="w-20 h-20 text-amber-300 dark:text-amber-600" />
       <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
         <button onClick={() => onView(album.id)} className="p-3 bg-white rounded-full hover:bg-gray-100"><EyeIcon className="w-5 h-5 text-gray-700" /></button>
         <button onClick={() => onEdit(album)} className="p-3 bg-white rounded-full hover:bg-gray-100"><PencilIcon className="w-5 h-5 text-gray-700" /></button>
@@ -84,7 +84,7 @@ const AlbumCard = ({ album, onView, onEdit, onDelete, formatDate }) => (
       <h3 className="font-bold text-gray-900 dark:text-white truncate">{album.title}</h3>
       <div className="flex items-center gap-2 mt-2 text-sm text-gray-500 dark:text-gray-400"><PhotoIcon className="w-4 h-4" /><span>{album.photosCount ?? 0} photo(s)</span></div>
       <div className="flex items-center gap-2 mt-1 text-sm text-gray-500 dark:text-gray-400"><CalendarDaysIcon className="w-4 h-4" /><span>{formatDate(album.createdAt)}</span></div>
-      {album.booking && <div className="flex items-center gap-2 mt-2 text-sm text-purple-600"><ArrowTopRightOnSquareIcon className="w-4 h-4" /><span>{album.booking.service}</span></div>}
+      {album.booking && <div className="flex items-center gap-2 mt-2 text-sm text-amber-600"><ArrowTopRightOnSquareIcon className="w-4 h-4" /><span>{album.booking.service}</span></div>}
     </div>
   </div>
 );
@@ -251,7 +251,7 @@ const PhotosManagement = () => {
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Gestion Photos & Albums</h1>
           <p className="text-gray-500 dark:text-gray-400 mt-1">{albums.length} album(s) · {stats?.totalPhotos ?? 0} photo(s)</p>
         </div>
-        <button onClick={createNewAlbum} className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-medium hover:shadow-lg transition-all">
+        <button onClick={createNewAlbum} className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-amber-600 to-orange-600 text-white rounded-xl font-medium hover:shadow-lg transition-all">
           <PlusIcon className="w-5 h-5" />Nouvel Album
         </button>
       </div>
@@ -259,8 +259,8 @@ const PhotosManagement = () => {
       {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: 'Albums',  value: stats?.totalAlbums    ?? 0, g: 'from-purple-500 to-purple-600', Icon: FolderIcon },
-          { label: 'Photos',  value: stats?.totalPhotos    ?? 0, g: 'from-pink-500 to-pink-600',     Icon: PhotoIcon },
+          { label: 'Albums',  value: stats?.totalAlbums    ?? 0, g: 'from-amber-500 to-amber-600', Icon: FolderIcon },
+          { label: 'Photos',  value: stats?.totalPhotos    ?? 0, g: 'from-orange-500 to-orange-600',     Icon: PhotoIcon },
           { label: 'Publics', value: stats?.publicAlbums   ?? 0, g: 'from-cyan-500 to-cyan-600',     Icon: EyeIcon },
           { label: 'Ce mois', value: stats?.photosThisMonth ?? 0, g: 'from-orange-500 to-orange-600', Icon: CloudArrowUpIcon },
         ].map(({ label, value, g, Icon }) => (
@@ -275,7 +275,7 @@ const PhotosManagement = () => {
 
       {/* Bouton retour */}
       {viewMode === 'album-detail' && (
-        <button onClick={() => { setViewMode('albums'); setSelectedAlbum(null); }} className="inline-flex items-center gap-2 text-purple-600 hover:text-purple-800 dark:text-purple-400 font-medium">
+        <button onClick={() => { setViewMode('albums'); setSelectedAlbum(null); }} className="inline-flex items-center gap-2 text-amber-600 hover:text-amber-800 dark:text-amber-400 font-medium">
           ← Retour aux albums
         </button>
       )}
@@ -290,32 +290,32 @@ const PhotosManagement = () => {
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Titre *</label>
               <input type="text" required value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 focus:ring-2 focus:ring-amber-500 focus:border-transparent"
                 placeholder="Ex: Mariage Marie & Jean" />
             </div>
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Description</label>
               <textarea value={formData.description} rows="3" onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 focus:ring-2 focus:ring-amber-500 focus:border-transparent"
                 placeholder="Décrivez cet album…" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Catégorie</label>
               <select value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                className="w-full px-4 py-2 border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 focus:ring-2 focus:ring-amber-500 focus:border-transparent">
                 {categories.filter(c => c.value !== 'all').map(cat => <option key={cat.value} value={cat.value}>{cat.label}</option>)}
               </select>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Réservation associée</label>
               <select value={formData.bookingId} onChange={(e) => setFormData({ ...formData, bookingId: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                className="w-full px-4 py-2 border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 focus:ring-2 focus:ring-amber-500 focus:border-transparent">
                 <option value="">Aucune</option>
                 {bookings.map(b => <option key={b.id} value={b.id}>{b.client} - {b.service} ({b.date})</option>)}
               </select>
             </div>
             <div className="flex items-center gap-3">
-              <input type="checkbox" id="isPublic" checked={formData.isPublic} onChange={(e) => setFormData({ ...formData, isPublic: e.target.checked })} className="w-4 h-4 text-purple-600 rounded" />
+              <input type="checkbox" id="isPublic" checked={formData.isPublic} onChange={(e) => setFormData({ ...formData, isPublic: e.target.checked })} className="w-4 h-4 text-amber-600 rounded" />
               <label htmlFor="isPublic" className="text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer">Album public</label>
             </div>
             <div className="md:col-span-2 flex gap-4">
@@ -335,18 +335,18 @@ const PhotosManagement = () => {
         <div>
           <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm mb-6">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div className="flex items-center gap-2"><FunnelIcon className="w-5 h-5 text-purple-600" /><span className="font-medium text-gray-900 dark:text-white">Filtrer</span></div>
+              <div className="flex items-center gap-2"><FunnelIcon className="w-5 h-5 text-amber-600" /><span className="font-medium text-gray-900 dark:text-white">Filtrer</span></div>
               <div className="flex flex-wrap gap-2">
                 {categories.map(cat => (
                   <button key={cat.value} onClick={() => setFilterCategory(cat.value)}
-                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${filterCategory === cat.value ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200'}`}>
+                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${filterCategory === cat.value ? 'bg-gradient-to-r from-amber-600 to-orange-600 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200'}`}>
                     {cat.label}
                   </button>
                 ))}
               </div>
               <div className="flex items-center gap-2 border-l border-gray-200 dark:border-gray-600 pl-4">
-                <button onClick={() => setViewFormat('grid')} className={`p-2 rounded-lg ${viewFormat === 'grid' ? 'bg-purple-100 text-purple-600' : 'text-gray-500'}`}><Squares2X2Icon className="w-5 h-5" /></button>
-                <button onClick={() => setViewFormat('list')} className={`p-2 rounded-lg ${viewFormat === 'list' ? 'bg-purple-100 text-purple-600' : 'text-gray-500'}`}><ListBulletIcon className="w-5 h-5" /></button>
+                <button onClick={() => setViewFormat('grid')} className={`p-2 rounded-lg ${viewFormat === 'grid' ? 'bg-amber-100 text-amber-600' : 'text-gray-500'}`}><Squares2X2Icon className="w-5 h-5" /></button>
+                <button onClick={() => setViewFormat('list')} className={`p-2 rounded-lg ${viewFormat === 'list' ? 'bg-amber-100 text-amber-600' : 'text-gray-500'}`}><ListBulletIcon className="w-5 h-5" /></button>
               </div>
             </div>
           </div>
@@ -356,7 +356,7 @@ const PhotosManagement = () => {
               <FolderIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
               <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Aucun album</h3>
               <p className="text-gray-500 dark:text-gray-400 mb-6">Créez votre premier album photo</p>
-              <button onClick={createNewAlbum} className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-medium hover:shadow-lg transition-all">
+              <button onClick={createNewAlbum} className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-amber-600 to-orange-600 text-white rounded-xl font-medium hover:shadow-lg transition-all">
                 <PlusIcon className="w-5 h-5" />Créer un album
               </button>
             </div>
@@ -377,8 +377,8 @@ const PhotosManagement = () => {
                     <tr key={album.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center"><FolderIcon className="w-6 h-6 text-purple-600" /></div>
-                          <div><p className="font-medium text-gray-900 dark:text-white">{album.title}</p>{album.booking && <p className="text-sm text-purple-600">{album.booking.client}</p>}</div>
+                          <div className="w-12 h-12 bg-amber-100 dark:bg-amber-900/30 rounded-lg flex items-center justify-center"><FolderIcon className="w-6 h-6 text-amber-600" /></div>
+                          <div><p className="font-medium text-gray-900 dark:text-white">{album.title}</p>{album.booking && <p className="text-sm text-amber-600">{album.booking.client}</p>}</div>
                         </div>
                       </td>
                       <td className="px-6 py-4"><span className="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-xs font-medium">{album.category}</span></td>
@@ -387,7 +387,7 @@ const PhotosManagement = () => {
                       <td className="px-6 py-4 text-gray-700 dark:text-gray-300">{formatDate(album.createdAt)}</td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
-                          <button onClick={() => loadAlbumPhotos(album.id)} className="p-2 text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-lg"><EyeIcon className="w-5 h-5" /></button>
+                          <button onClick={() => loadAlbumPhotos(album.id)} className="p-2 text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-lg"><EyeIcon className="w-5 h-5" /></button>
                           <button onClick={() => editAlbum(album)} className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg"><PencilIcon className="w-5 h-5" /></button>
                           <button onClick={() => handleDeleteAlbum(album.id)} className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"><TrashIcon className="w-5 h-5" /></button>
                         </div>
@@ -414,7 +414,7 @@ const PhotosManagement = () => {
                     {selectedAlbum.isPublic ? '✓ Public' : '✗ Privé'}
                   </span>
                   {selectedAlbum.booking && (
-                    <span className="text-sm text-purple-600 flex items-center gap-1">
+                    <span className="text-sm text-amber-600 flex items-center gap-1">
                       <UserIcon className="w-4 h-4" />
                       {selectedAlbum.booking.client} · {selectedAlbum.booking.service}
                     </span>
@@ -429,11 +429,11 @@ const PhotosManagement = () => {
 
           {/* Zone upload — UploadButton est un composant stable → plus de insertBefore */}
           <div
-            className={`bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-sm border-2 border-dashed transition-colors ${dragActive ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20' : 'border-gray-200 dark:border-gray-600'}`}
+            className={`bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-sm border-2 border-dashed transition-colors ${dragActive ? 'border-amber-500 bg-amber-50 dark:bg-amber-900/20' : 'border-gray-200 dark:border-gray-600'}`}
             onDragEnter={handleDrag} onDragLeave={handleDrag} onDragOver={handleDrag} onDrop={handleDrop}
           >
             <div className="text-center">
-              <div className={`w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center transition-colors ${dragActive ? 'bg-purple-100 text-purple-600' : 'bg-gray-100 text-gray-500'}`}>
+              <div className={`w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center transition-colors ${dragActive ? 'bg-amber-100 text-amber-600' : 'bg-gray-100 text-gray-500'}`}>
                 <ArrowUpTrayIcon className="w-8 h-8" />
               </div>
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">

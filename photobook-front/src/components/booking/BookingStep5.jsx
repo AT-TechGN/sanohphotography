@@ -112,7 +112,7 @@ const BookingStep5 = () => {
           )}
           <div className="flex justify-between items-center pt-3">
             <span className="text-lg font-bold text-gray-900 dark:text-white">Total</span>
-            <span className="text-2xl font-bold text-purple-600">
+            <span className="text-2xl font-bold text-amber-600">
               {formatPrice(selectedService?.basePrice)}
             </span>
           </div>

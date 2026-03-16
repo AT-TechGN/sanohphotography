@@ -72,7 +72,7 @@ const LoginForm = () => {
         {/* Logo */}
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center gap-2">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-600 to-pink-500 flex items-center justify-center">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-600 to-orange-500 flex items-center justify-center">
               <CameraIcon className="w-7 h-7 text-white" />
             </div>
           </Link>
@@ -93,7 +93,7 @@ const LoginForm = () => {
               <input
                 type="email" id="email" name="email"
                 value={formData.email} onChange={handleChange}
-                className={`w-full pl-10 pr-4 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-gray-50 dark:bg-gray-700 ${errors.email ? 'border-red-500' : 'border-gray-200 dark:border-gray-600'}`}
+                className={`w-full pl-10 pr-4 py-3 border rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-transparent bg-gray-50 dark:bg-gray-700 ${errors.email ? 'border-red-500' : 'border-gray-200 dark:border-gray-600'}`}
                 placeholder="votre@email.com"
               />
             </div>
@@ -112,7 +112,7 @@ const LoginForm = () => {
               <input
                 type={showPassword ? 'text' : 'password'} id="password" name="password"
                 value={formData.password} onChange={handleChange}
-                className={`w-full pl-10 pr-12 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-gray-50 dark:bg-gray-700 ${errors.password ? 'border-red-500' : 'border-gray-200 dark:border-gray-600'}`}
+                className={`w-full pl-10 pr-12 py-3 border rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-transparent bg-gray-50 dark:bg-gray-700 ${errors.password ? 'border-red-500' : 'border-gray-200 dark:border-gray-600'}`}
                 placeholder="••••••••"
               />
               <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-0 pr-3 flex items-center">
@@ -127,7 +127,7 @@ const LoginForm = () => {
 
           <button
             type="submit" disabled={loading}
-            className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 px-4 rounded-xl font-medium hover:from-purple-700 hover:to-pink-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg"
+            className="w-full bg-gradient-to-r from-amber-600 to-orange-600 text-white py-3 px-4 rounded-xl font-medium hover:from-amber-700 hover:to-orange-700 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg"
           >
             {loading ? 'Connexion...' : 'Se connecter'}
           </button>
@@ -136,7 +136,7 @@ const LoginForm = () => {
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-600 dark:text-gray-400">
             Pas encore de compte ?{' '}
-            <Link to="/register" className="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-medium">
+            <Link to="/register" className="text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 font-medium">
               S'inscrire
             </Link>
           </p>

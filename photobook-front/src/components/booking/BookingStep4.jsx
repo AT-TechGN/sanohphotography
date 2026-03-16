@@ -55,7 +55,7 @@ const BookingStep4 = () => {
         {/* Participants */}
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
-            <UsersIcon className="w-4 h-4 text-purple-600" />
+            <UsersIcon className="w-4 h-4 text-amber-600" />
             Nombre de participants
           </label>
           <input
@@ -65,7 +65,7 @@ const BookingStep4 = () => {
             onChange={handleChange}
             min="1"
             max={selectedService?.maxParticipants || 100}
-            className="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 dark:text-white"
+            className="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 focus:ring-2 focus:ring-amber-500 focus:border-transparent text-gray-900 dark:text-white"
           />
           {selectedService?.maxParticipants && (
             <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
@@ -77,7 +77,7 @@ const BookingStep4 = () => {
         {/* Notes */}
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
-            <ChatBubbleLeftEllipsisIcon className="w-4 h-4 text-purple-600" />
+            <ChatBubbleLeftEllipsisIcon className="w-4 h-4 text-amber-600" />
             Notes ou demandes spéciales <span className="text-gray-400 font-normal">(optionnel)</span>
           </label>
           <textarea
@@ -86,7 +86,7 @@ const BookingStep4 = () => {
             onChange={handleChange}
             rows="4"
             placeholder="Exemple : préférence pour fond blanc, besoin de maquillage…"
-            className="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 dark:text-white resize-none"
+            className="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 focus:ring-2 focus:ring-amber-500 focus:border-transparent text-gray-900 dark:text-white resize-none"
           />
         </div>
       </div>
@@ -103,7 +103,7 @@ const BookingStep4 = () => {
         <button
           type="button"
           onClick={handleContinue}
-          className="px-8 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl hover:shadow-lg transition-all font-medium"
+          className="px-8 py-3 bg-gradient-to-r from-amber-600 to-orange-600 text-white rounded-xl hover:shadow-lg transition-all font-medium"
         >
           Continuer →
         </button>

@@ -93,7 +93,7 @@ const RegisterForm = () => {
         {/* Logo */}
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center gap-2">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-600 to-pink-500 flex items-center justify-center">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-600 to-orange-500 flex items-center justify-center">
               <CameraIcon className="w-7 h-7 text-white" />
             </div>
           </Link>
@@ -122,7 +122,7 @@ const RegisterForm = () => {
                   name="firstName"
                   value={formData.firstName}
                   onChange={handleChange}
-                  className={`w-full pl-10 pr-4 py-2.5 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-gray-50 dark:bg-gray-700 ${
+                  className={`w-full pl-10 pr-4 py-2.5 border rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-transparent bg-gray-50 dark:bg-gray-700 ${
                     errors.firstName ? 'border-red-500' : 'border-gray-200 dark:border-gray-600'
                   }`}
                 />
@@ -142,7 +142,7 @@ const RegisterForm = () => {
                 name="lastName"
                 value={formData.lastName}
                 onChange={handleChange}
-                className={`w-full px-4 py-2.5 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-gray-50 dark:bg-gray-700 ${
+                className={`w-full px-4 py-2.5 border rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-transparent bg-gray-50 dark:bg-gray-700 ${
                   errors.lastName ? 'border-red-500' : 'border-gray-200 dark:border-gray-600'
                 }`}
               />
@@ -167,7 +167,7 @@ const RegisterForm = () => {
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                className={`w-full pl-10 pr-4 py-2.5 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-gray-50 dark:bg-gray-700 ${
+                className={`w-full pl-10 pr-4 py-2.5 border rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-transparent bg-gray-50 dark:bg-gray-700 ${
                   errors.email ? 'border-red-500' : 'border-gray-200 dark:border-gray-600'
                 }`}
               />
@@ -193,7 +193,7 @@ const RegisterForm = () => {
                 value={formData.phone}
                 onChange={handleChange}
                 placeholder="+224 620 00 00 00"
-                className={`w-full pl-10 pr-4 py-2.5 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-gray-50 dark:bg-gray-700 ${
+                className={`w-full pl-10 pr-4 py-2.5 border rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-transparent bg-gray-50 dark:bg-gray-700 ${
                   errors.phone ? 'border-red-500' : 'border-gray-200 dark:border-gray-600'
                 }`}
               />
@@ -218,7 +218,7 @@ const RegisterForm = () => {
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                className={`w-full pl-10 pr-12 py-2.5 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-gray-50 dark:bg-gray-700 ${
+                className={`w-full pl-10 pr-12 py-2.5 border rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-transparent bg-gray-50 dark:bg-gray-700 ${
                   errors.password ? 'border-red-500' : 'border-gray-200 dark:border-gray-600'
                 }`}
               />
@@ -254,7 +254,7 @@ const RegisterForm = () => {
                 name="confirmPassword"
                 value={formData.confirmPassword}
                 onChange={handleChange}
-                className={`w-full pl-10 pr-4 py-2.5 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-gray-50 dark:bg-gray-700 ${
+                className={`w-full pl-10 pr-4 py-2.5 border rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-transparent bg-gray-50 dark:bg-gray-700 ${
                   errors.confirmPassword ? 'border-red-500' : 'border-gray-200 dark:border-gray-600'
                 }`}
               />
@@ -268,7 +268,7 @@ const RegisterForm = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 px-4 rounded-xl font-medium hover:from-purple-700 hover:to-pink-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg mt-6"
+            className="w-full bg-gradient-to-r from-amber-600 to-orange-600 text-white py-3 px-4 rounded-xl font-medium hover:from-amber-700 hover:to-orange-700 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg mt-6"
           >
             {loading ? 'Inscription...' : 'S\'inscrire'}
           </button>
@@ -280,7 +280,7 @@ const RegisterForm = () => {
             Déjà un compte ?{' '}
             <Link
               to="/login"
-              className="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-medium"
+              className="text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 font-medium"
             >
               Se connecter
             </Link>

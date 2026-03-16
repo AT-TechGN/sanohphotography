@@ -197,7 +197,7 @@ const EmployeesManagement = () => {
         </div>
         <button
           onClick={() => { resetForm(); setShowForm(!showForm); }}
-          className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-medium hover:shadow-lg transition-all"
+          className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-amber-600 to-orange-600 text-white rounded-xl font-medium hover:shadow-lg transition-all"
         >
           <span className="inline-flex items-center gap-2">
             {showForm ? <XCircleIcon className="w-5 h-5" /> : <PlusIcon className="w-5 h-5" />}
@@ -229,7 +229,7 @@ const EmployeesManagement = () => {
                     type={type}
                     value={formData[key]}
                     onChange={(e) => setFormData({ ...formData, [key]: e.target.value })}
-                    className={`w-full ${Icon ? 'pl-10' : 'pl-4'} pr-4 py-2 border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 focus:ring-2 focus:ring-purple-500 focus:border-transparent`}
+                    className={`w-full ${Icon ? 'pl-10' : 'pl-4'} pr-4 py-2 border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 focus:ring-2 focus:ring-amber-500 focus:border-transparent`}
                     required={required}
                   />
                 </div>
@@ -251,14 +251,14 @@ const EmployeesManagement = () => {
       <div className="flex gap-2 bg-gray-100 dark:bg-gray-800 p-1 rounded-xl w-fit">
         <button
           onClick={() => setActiveTab('list')}
-          className={`px-5 py-2 rounded-lg font-medium transition-all ${activeTab === 'list' ? 'bg-white dark:bg-gray-700 text-purple-600 shadow-sm' : 'text-gray-600 dark:text-gray-400'}`}
+          className={`px-5 py-2 rounded-lg font-medium transition-all ${activeTab === 'list' ? 'bg-white dark:bg-gray-700 text-amber-600 shadow-sm' : 'text-gray-600 dark:text-gray-400'}`}
         >
           Liste
         </button>
         {selectedEmployee && (
           <button
             onClick={() => setActiveTab('details')}
-            className={`px-5 py-2 rounded-lg font-medium transition-all ${activeTab === 'details' ? 'bg-white dark:bg-gray-700 text-purple-600 shadow-sm' : 'text-gray-600 dark:text-gray-400'}`}
+            className={`px-5 py-2 rounded-lg font-medium transition-all ${activeTab === 'details' ? 'bg-white dark:bg-gray-700 text-amber-600 shadow-sm' : 'text-gray-600 dark:text-gray-400'}`}
           >
             {selectedEmployee.firstName} {selectedEmployee.lastName}
           </button>
@@ -277,12 +277,12 @@ const EmployeesManagement = () => {
             <div key={employee.id} className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-md transition-all p-6">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white font-bold">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-400 to-orange-400 flex items-center justify-center text-white font-bold">
                     {employee.firstName?.[0]}{employee.lastName?.[0]}
                   </div>
                   <div>
                     <h3 className="font-bold text-gray-900 dark:text-white">{employee.firstName} {employee.lastName}</h3>
-                    <p className="text-sm text-purple-600">{employee.position}</p>
+                    <p className="text-sm text-amber-600">{employee.position}</p>
                   </div>
                 </div>
               </div>
@@ -291,7 +291,7 @@ const EmployeesManagement = () => {
                 <p className="flex items-center gap-2"><PhoneIcon className="w-4 h-4" />{employee.phone}</p>
               </div>
               <div className="flex gap-2">
-                <button onClick={() => selectEmployee(employee)} className="flex-1 px-4 py-2 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/30 text-sm font-medium transition-colors">
+                <button onClick={() => selectEmployee(employee)} className="flex-1 px-4 py-2 bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 rounded-lg hover:bg-amber-100 dark:hover:bg-amber-900/30 text-sm font-medium transition-colors">
                   Détails
                 </button>
                 <button onClick={() => editEmployee(employee)} className="px-4 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-100 transition-colors">
@@ -347,7 +347,7 @@ const EmployeesManagement = () => {
               ) : availabilities.map((avail) => (
                 <div key={avail.id} className="flex justify-between items-center border border-gray-200 dark:border-gray-600 p-3 rounded-xl">
                   <div className="flex items-center gap-3">
-                    <CalendarDaysIcon className="w-5 h-5 text-purple-600" />
+                    <CalendarDaysIcon className="w-5 h-5 text-amber-600" />
                     <span className="font-medium text-gray-900 dark:text-white">
                       {daysOfWeek.find((d) => d.value === avail.dayOfWeek)?.label}
                     </span>

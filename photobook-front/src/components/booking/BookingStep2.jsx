@@ -39,9 +39,9 @@ const BookingStep2 = () => {
       </p>
 
       {/* Service sélectionné */}
-      <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-700 rounded-xl p-4 mb-6 flex items-center gap-3">
-        <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center">
-          <ClockIcon className="w-5 h-5 text-purple-600" />
+      <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-xl p-4 mb-6 flex items-center gap-3">
+        <div className="w-10 h-10 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center">
+          <ClockIcon className="w-5 h-5 text-amber-600" />
         </div>
         <div>
           <p className="font-bold text-gray-900 dark:text-white">{selectedService?.name}</p>
@@ -59,7 +59,7 @@ const BookingStep2 = () => {
       {/* Sélection de date */}
       <div className="bg-white dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-xl p-6 mb-6">
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
-          <CalendarDaysIcon className="w-4 h-4 text-purple-600" />
+          <CalendarDaysIcon className="w-4 h-4 text-amber-600" />
           Sélectionnez une date
         </label>
         <input
@@ -68,10 +68,10 @@ const BookingStep2 = () => {
           onChange={(e) => setTempDate(e.target.value)}
           min={minDate}
           max={maxDateStr}
-          className="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 focus:ring-2 focus:ring-purple-500 focus:border-transparent text-lg text-gray-900 dark:text-white"
+          className="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 focus:ring-2 focus:ring-amber-500 focus:border-transparent text-lg text-gray-900 dark:text-white"
         />
         {tempDate && (
-          <p className="mt-3 text-sm text-purple-600 dark:text-purple-400 font-medium">
+          <p className="mt-3 text-sm text-amber-600 dark:text-amber-400 font-medium">
             📅 {formatSelectedDate(tempDate)}
           </p>
         )}
@@ -93,7 +93,7 @@ const BookingStep2 = () => {
           type="button"
           onClick={handleContinue}
           disabled={!tempDate}
-          className="px-8 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium"
+          className="px-8 py-3 bg-gradient-to-r from-amber-600 to-orange-600 text-white rounded-xl hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium"
         >
           Continuer →
         </button>

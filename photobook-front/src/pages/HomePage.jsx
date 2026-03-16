@@ -274,13 +274,13 @@ const HomePage = () => {
 
         <div className="relative z-20 max-w-3xl ml-auto p-6 md:p-12">
           <div className="flex items-center gap-3 mb-4">
-            <span className="w-10 h-px bg-purple-600" />
-            <span className="text-xs uppercase tracking-wider text-purple-300">Photographe — Conakry</span>
+            <span className="w-10 h-px bg-amber-600" />
+            <span className="text-xs uppercase tracking-wider text-amber-300">Photographe — Conakry</span>
           </div>
 
           <h1 className="text-4xl md:text-6xl font-extrabold leading-tight mb-4">
             L'art de figer <br />
-            les <em className="not-italic text-purple-500 font-normal">instants précieux</em>
+            les <em className="not-italic text-amber-500 font-normal">instants précieux</em>
           </h1>
 
           <p className="text-lg text-gray-300 mb-8">
@@ -291,13 +291,13 @@ const HomePage = () => {
             {/* CORRECTION 14 : href="#contact" → Link to="#contact" (cohérence React Router) */}
             <Link
               to="#contact"
-              className="inline-flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full font-semibold hover:opacity-90 transition-opacity"
+              className="inline-flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-amber-600 to-orange-600 text-white rounded-full font-semibold hover:opacity-90 transition-opacity"
             >
               Réserver une séance
             </Link>
             <Link
               to="#gallery"
-              className="inline-flex items-center gap-2 px-4 py-2 border border-gray-700 rounded-md text-gray-200 hover:border-purple-500 transition-colors"
+              className="inline-flex items-center gap-2 px-4 py-2 border border-gray-700 rounded-md text-gray-200 hover:border-amber-500 transition-colors"
             >
               Voir la galerie
             </Link>
@@ -332,7 +332,7 @@ const HomePage = () => {
                   {/* CORRECTION 15 : ref callback stable, pas de recréation à chaque render */}
                   <div
                     ref={(el) => { countersRef.current[i] = el; }}
-                    className="text-3xl font-extrabold text-purple-500"
+                    className="text-3xl font-extrabold text-amber-500"
                   >
                     0
                   </div>
@@ -355,16 +355,16 @@ const HomePage = () => {
         <div className="order-2 lg:order-1">
           <div className="relative w-full h-96 bg-gradient-to-br from-gray-800 to-gray-700 rounded-md overflow-hidden flex items-center justify-center">
             <div className="text-8xl opacity-10">📷</div>
-            <div className="absolute bottom-6 left-6 bg-purple-500 text-white px-4 py-2 rounded">7+ ans</div>
+            <div className="absolute bottom-6 left-6 bg-amber-500 text-white px-4 py-2 rounded">7+ ans</div>
           </div>
         </div>
         <div className="order-1 lg:order-2">
           <div className="mb-3 flex items-center gap-3">
-            <span className="w-8 h-px bg-purple-600" />
-            <span className="text-xs uppercase text-purple-300">Notre studio</span>
+            <span className="w-8 h-px bg-amber-600" />
+            <span className="text-xs uppercase text-amber-300">Notre studio</span>
           </div>
           <h2 className="text-3xl lg:text-4xl font-extrabold mb-4">
-            Capturer l'âme de chaque <em className="text-purple-500 not-italic">moment</em>
+            Capturer l'âme de chaque <em className="text-amber-500 not-italic">moment</em>
           </h2>
           <p className="text-gray-300 mb-4">
             PhotoBook Studio allie expertise technique et sensibilité artistique pour transformer chaque séance en œuvre d'art.
@@ -388,14 +388,14 @@ const HomePage = () => {
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-end justify-between mb-8">
             <div>
-              <div className="text-xs uppercase text-purple-300 mb-2">Prestations</div>
+              <div className="text-xs uppercase text-amber-300 mb-2">Prestations</div>
               <h3 className="text-2xl lg:text-3xl font-extrabold">
-                Nos <em className="text-purple-500 not-italic">prestations</em>
+                Nos <em className="text-amber-500 not-italic">prestations</em>
               </h3>
             </div>
             <Link
               to="/services"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded hover:opacity-90 transition-opacity"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-600 to-orange-600 text-white rounded hover:opacity-90 transition-opacity"
             >
               Voir tous
             </Link>
@@ -417,7 +417,7 @@ const HomePage = () => {
                   >
                     <div className="text-2xl mb-3">{service.icon}</div>
                     <div className="font-serif text-lg text-white">{service.name}</div>
-                    <div className="text-sm text-purple-400 mt-2">À partir de {service.price}</div>
+                    <div className="text-sm text-amber-400 mt-2">À partir de {service.price}</div>
                   </div>
                 ))
             }
@@ -437,12 +437,12 @@ const HomePage = () => {
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-end justify-between mb-6">
             <div>
-              <div className="text-xs uppercase text-purple-300">Portfolio</div>
+              <div className="text-xs uppercase text-amber-300">Portfolio</div>
               <h3 className="text-2xl lg:text-3xl font-extrabold">
-                Galerie <em className="text-purple-500 not-italic">récente</em>
+                Galerie <em className="text-amber-500 not-italic">récente</em>
               </h3>
             </div>
-            <Link to="/gallery" className="text-sm text-gray-300 underline hover:text-purple-400 transition-colors">
+            <Link to="/gallery" className="text-sm text-gray-300 underline hover:text-amber-400 transition-colors">
               Voir tout
             </Link>
           </div>
@@ -499,13 +499,13 @@ const HomePage = () => {
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
             <div>
-              <div className="text-xs uppercase text-purple-300">Témoignages</div>
+              <div className="text-xs uppercase text-amber-300">Témoignages</div>
               <h3 className="text-2xl lg:text-3xl font-extrabold">
-                Ce que disent <em className="text-purple-500 not-italic">nos clients</em>
+                Ce que disent <em className="text-amber-500 not-italic">nos clients</em>
               </h3>
             </div>
             <div className="text-right">
-              <div className="text-4xl font-extrabold text-purple-500">4.9</div>
+              <div className="text-4xl font-extrabold text-amber-500">4.9</div>
               <div className="text-sm text-gray-400">Basé sur 127 avis</div>
             </div>
           </div>
@@ -530,17 +530,17 @@ const HomePage = () => {
                     key={r.id}
                     className={`p-6 rounded-md ${
                       r.featured
-                        ? 'bg-gradient-to-b from-purple-800 to-gray-800 ring-2 ring-purple-500/30'
+                        ? 'bg-gradient-to-b from-amber-800 to-gray-800 ring-2 ring-amber-500/30'
                         : 'bg-gray-800 hover:bg-gray-700'
                     } transition-colors`}
                   >
                     {/* CORRECTION 18 : Array(r.stars).fill() nécessite une valeur — fill('★') */}
-                    <div className="text-2xl text-purple-400 mb-4">
+                    <div className="text-2xl text-amber-400 mb-4">
                       {'★'.repeat(Math.min(Math.max(r.stars, 0), 5))}
                     </div>
                     <p className="italic text-gray-200 mb-6">{r.text}</p>
                     <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-full bg-purple-700 flex items-center justify-center text-lg">
+                      <div className="w-12 h-12 rounded-full bg-amber-700 flex items-center justify-center text-lg">
                         {r.avatar}
                       </div>
                       <div>

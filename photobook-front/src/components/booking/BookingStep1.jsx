@@ -81,7 +81,7 @@ const BookingStep1 = () => {
       <p className="text-red-500 mb-6">{error}</p>
       <button
         onClick={loadServices}
-        className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-medium hover:shadow-lg transition-all"
+        className="px-6 py-3 bg-gradient-to-r from-amber-600 to-orange-600 text-white rounded-xl font-medium hover:shadow-lg transition-all"
       >
         Réessayer
       </button>
@@ -121,8 +121,8 @@ const BookingStep1 = () => {
               onClick={() => handleSelectService(service)}
               className={`text-left border-2 rounded-2xl p-6 transition-all hover:shadow-lg focus:outline-none ${
                 isSelected
-                  ? 'border-purple-600 bg-purple-50 dark:bg-purple-900/20 shadow-md'
-                  : 'border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-500 bg-white dark:bg-gray-800'
+                  ? 'border-amber-600 bg-amber-50 dark:bg-amber-900/20 shadow-md'
+                  : 'border-gray-200 dark:border-gray-700 hover:border-amber-300 dark:hover:border-amber-500 bg-white dark:bg-gray-800'
               }`}
             >
               {/* Header */}
@@ -133,13 +133,13 @@ const BookingStep1 = () => {
                     <h3 className="text-lg font-bold text-gray-900 dark:text-white leading-tight">
                       {service.name}
                     </h3>
-                    <span className="inline-block mt-1 px-2 py-0.5 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs font-semibold rounded-full">
+                    <span className="inline-block mt-1 px-2 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-xs font-semibold rounded-full">
                       {label}
                     </span>
                   </div>
                 </div>
                 {isSelected && (
-                  <span className="w-7 h-7 rounded-full bg-purple-600 flex items-center justify-center text-white text-sm flex-shrink-0">
+                  <span className="w-7 h-7 rounded-full bg-amber-600 flex items-center justify-center text-white text-sm flex-shrink-0">
                     ✓
                   </span>
                 )}
@@ -155,12 +155,12 @@ const BookingStep1 = () => {
               {/* Infos */}
               <div className="space-y-2 mb-4">
                 <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                  <ClockIcon className="w-4 h-4 text-purple-500 flex-shrink-0" />
+                  <ClockIcon className="w-4 h-4 text-amber-500 flex-shrink-0" />
                   <span>{service.durationMin} minutes</span>
                 </div>
                 {service.maxParticipants && (
                   <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                    <UsersIcon className="w-4 h-4 text-purple-500 flex-shrink-0" />
+                    <UsersIcon className="w-4 h-4 text-amber-500 flex-shrink-0" />
                     <span>Max {service.maxParticipants} participant(s)</span>
                   </div>
                 )}
@@ -171,7 +171,7 @@ const BookingStep1 = () => {
                 <p className="text-xs text-gray-500 dark:text-gray-400">À partir de</p>
                 <div className="flex items-center gap-1">
                   <CurrencyDollarIcon className="w-4 h-4 text-green-600" />
-                  <p className="text-xl font-bold text-purple-600 dark:text-purple-400">
+                  <p className="text-xl font-bold text-amber-600 dark:text-amber-400">
                     {formatPrice(service.basePrice)}
                   </p>
                 </div>

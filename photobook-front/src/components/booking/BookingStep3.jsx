@@ -55,9 +55,9 @@ const BookingStep3 = () => {
       </h2>
 
       {/* Récapitulatif */}
-      <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-700 rounded-xl p-4 mb-6">
-        <p className="font-bold text-purple-900 dark:text-purple-300 mb-1">{selectedService?.name}</p>
-        <p className="text-sm text-purple-700 dark:text-purple-400">
+      <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-xl p-4 mb-6">
+        <p className="font-bold text-amber-900 dark:text-amber-300 mb-1">{selectedService?.name}</p>
+        <p className="text-sm text-amber-700 dark:text-amber-400">
           📅 {new Date(selectedDate).toLocaleDateString('fr-FR', {
             weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
           })}
@@ -70,7 +70,7 @@ const BookingStep3 = () => {
       ) : error ? (
         <div className="text-center py-8">
           <p className="text-red-500 mb-4">{error}</p>
-          <button onClick={loadAvailableSlots} className="text-purple-600 hover:text-purple-700 font-medium">
+          <button onClick={loadAvailableSlots} className="text-amber-600 hover:text-amber-700 font-medium">
             Réessayer
           </button>
         </div>
@@ -79,7 +79,7 @@ const BookingStep3 = () => {
           <p className="text-gray-500 dark:text-gray-400 mb-4">
             Aucun créneau disponible pour cette date
           </p>
-          <button onClick={previousStep} className="text-purple-600 hover:text-purple-700 font-medium">
+          <button onClick={previousStep} className="text-amber-600 hover:text-amber-700 font-medium">
             ← Choisir une autre date
           </button>
         </div>
@@ -95,14 +95,14 @@ const BookingStep3 = () => {
                 onClick={() => selectSlot(slot)}
                 className={`p-4 border-2 rounded-xl transition-all text-left ${
                   selectedSlot?.startTime === slot.startTime
-                    ? 'border-purple-600 bg-purple-50 dark:bg-purple-900/20 shadow-md'
-                    : 'border-gray-200 dark:border-gray-600 hover:border-purple-300 dark:hover:border-purple-500 hover:shadow-sm'
+                    ? 'border-amber-600 bg-amber-50 dark:bg-amber-900/20 shadow-md'
+                    : 'border-gray-200 dark:border-gray-600 hover:border-amber-300 dark:hover:border-amber-500 hover:shadow-sm'
                 }`}
               >
                 <p className="font-bold text-lg text-gray-900 dark:text-white">{slot.startTime}</p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">{slot.endTime}</p>
                 {slot.employee && (
-                  <p className="text-xs text-purple-600 dark:text-purple-400 mt-2 truncate">
+                  <p className="text-xs text-amber-600 dark:text-amber-400 mt-2 truncate">
                     📷 {slot.employee.firstName}
                   </p>
                 )}
@@ -123,7 +123,7 @@ const BookingStep3 = () => {
         <button
           onClick={handleContinue}
           disabled={!selectedSlot}
-          className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium"
+          className="px-6 py-3 bg-gradient-to-r from-amber-600 to-orange-600 text-white rounded-xl hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium"
         >
           Continuer
         </button>

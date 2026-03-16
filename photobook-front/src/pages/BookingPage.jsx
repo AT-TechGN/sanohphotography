@@ -55,7 +55,7 @@ const BookingPage = () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300 pt-16">
       {/* Header Section */}
-      <div className="bg-gradient-to-br from-purple-900 via-gray-900 to-pink-900 text-white py-12">
+      <div className="bg-gradient-to-br from-gray-900 via-amber-950 to-gray-900 text-white py-12">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <Motion.div
@@ -85,7 +85,7 @@ const BookingPage = () => {
                   <div
                     className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg transition-all ${
                       step.number === currentStep
-                        ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg'
+                        ? 'bg-gradient-to-r from-amber-600 to-orange-600 text-white shadow-lg'
                         : step.number < currentStep
                         ? 'bg-green-500 text-white'
                         : 'bg-gray-200 dark:bg-gray-700 text-gray-500'
@@ -102,7 +102,7 @@ const BookingPage = () => {
                   <p
                     className={`mt-2 text-xs sm:text-sm font-medium ${
                       step.number === currentStep
-                        ? 'text-purple-600 dark:text-purple-400'
+                        ? 'text-amber-600 dark:text-amber-400'
                         : step.number < currentStep
                         ? 'text-green-600'
                         : 'text-gray-500 dark:text-gray-400'

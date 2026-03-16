@@ -2,7 +2,7 @@
  * Composant Loading — spinner réutilisable
  *
  * CORRECTION 8 : couleur du spinner changée de "border-blue-600" (bleu)
- *   en "border-purple-600" pour être cohérent avec le thème violet du projet.
+ *   en "border-amber-600" pour être cohérent avec le thème violet du projet.
  *
  * CORRECTION 9 : ajout de la prop `text` pour afficher un message optionnel
  *   sous le spinner (ex: <Loading text="Chargement des photos..." />).
@@ -19,7 +19,7 @@ const Loading = ({ size = 'md', fullScreen = false, text = '' }) => {
   const spinner = (
     <div className="flex flex-col items-center justify-center gap-3">
       <div
-        className={`${sizes[size]} border-purple-600 border-t-transparent rounded-full animate-spin`}
+        className={`${sizes[size]} border-amber-600 border-t-transparent rounded-full animate-spin`}
       />
       {/* CORRECTION 9 : message optionnel sous le spinner */}
       {text && (

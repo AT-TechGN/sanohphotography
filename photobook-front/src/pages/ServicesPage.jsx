@@ -64,7 +64,7 @@ const ServicesPage = () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300 pt-16">
       {/* Header Section */}
-      <div className="bg-gradient-to-br from-purple-900 via-gray-900 to-pink-900 text-white py-16">
+      <div className="bg-gradient-to-br from-gray-900 via-amber-950 to-gray-900 text-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <Motion.div
@@ -91,7 +91,7 @@ const ServicesPage = () => {
               onClick={() => setSelectedCategory('all')}
               className={`px-6 py-3 rounded-full font-medium text-sm transition-all ${
                 selectedCategory === 'all'
-                  ? 'bg-purple-600 text-white shadow-lg'
+                  ? 'bg-amber-600 text-white shadow-lg'
                   : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
               }`}
             >
@@ -103,7 +103,7 @@ const ServicesPage = () => {
                 onClick={() => setSelectedCategory(cat.category)}
                 className={`px-6 py-3 rounded-full font-medium text-sm transition-all ${
                   selectedCategory === cat.category
-                    ? 'bg-purple-600 text-white shadow-lg'
+                    ? 'bg-amber-600 text-white shadow-lg'
                     : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                 }`}
               >
@@ -128,7 +128,7 @@ const ServicesPage = () => {
               className="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300"
             >
               {/* Image placeholder avec gradient */}
-              <div className="h-48 bg-gradient-to-br from-purple-500 via-pink-500 to-purple-600 flex items-center justify-center relative overflow-hidden">
+              <div className="h-48 bg-gradient-to-br from-amber-500 via-orange-500 to-amber-600 flex items-center justify-center relative overflow-hidden">
                 <div className="absolute inset-0 bg-black/10" />
                 <span className="text-6xl relative z-10">📸</span>
                 {/* Decorative circles */}
@@ -139,7 +139,7 @@ const ServicesPage = () => {
               {/* Contenu */}
               <div className="p-6">
                 {/* Catégorie */}
-                <span className="inline-block px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 text-xs font-semibold rounded-full mb-3">
+                <span className="inline-block px-3 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 text-xs font-semibold rounded-full mb-3">
                   {service.category}
                 </span>
 
@@ -156,12 +156,12 @@ const ServicesPage = () => {
                 {/* Infos */}
                 <div className="space-y-2 mb-4">
                   <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
-                    <ClockIcon className="w-5 h-5 mr-2 text-purple-500" />
+                    <ClockIcon className="w-5 h-5 mr-2 text-amber-500" />
                     <span>{service.durationMin} minutes</span>
                   </div>
                   {service.maxParticipants && (
                     <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
-                      <UserGroupIcon className="w-5 h-5 mr-2 text-purple-500" />
+                      <UserGroupIcon className="w-5 h-5 mr-2 text-amber-500" />
                       <span>Max {service.maxParticipants} participants</span>
                     </div>
                   )}
@@ -171,14 +171,14 @@ const ServicesPage = () => {
                 <div className="flex items-end justify-between pt-4 border-t border-gray-100 dark:border-gray-700">
                   <div>
                     <p className="text-sm text-gray-500 dark:text-gray-400">À partir de</p>
-                    <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                    <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">
                       {formatPrice(service.basePrice)}
                     </p>
                   </div>
                   <Link
                     to="/booking"
                     state={{ selectedService: service }}
-                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-purple-600 text-white font-semibold rounded-full hover:bg-purple-700 transition-colors"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-amber-600 text-white font-semibold rounded-full hover:bg-amber-700 transition-colors"
                   >
                     <CalendarIcon className="w-4 h-4" />
                     Réserver

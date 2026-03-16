@@ -96,7 +96,7 @@ const GalleryPage = () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300 pt-16">
       {/* Header Section */}
-      <div className="bg-gradient-to-br from-purple-900 via-gray-900 to-pink-900 text-white py-16">
+      <div className="bg-gradient-to-br from-gray-900 via-amber-950 to-gray-900 text-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <Motion.div
@@ -142,7 +142,7 @@ const GalleryPage = () => {
                     onClick={() => handleFilterChange('period', period.value)}
                     className={`px-4 py-2 rounded-full font-medium text-sm transition-all ${
                       filters.period === period.value
-                        ? 'bg-purple-600 text-white shadow-lg'
+                        ? 'bg-amber-600 text-white shadow-lg'
                         : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                     }`}
                   >
@@ -160,7 +160,7 @@ const GalleryPage = () => {
               <select
                 value={filters.category}
                 onChange={(e) => handleFilterChange('category', e.target.value)}
-                className="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-amber-500 focus:border-transparent"
               >
                 <option value="">Toutes les catégories</option>
                 {categories.map((cat) => (
@@ -182,7 +182,7 @@ const GalleryPage = () => {
               <PhotoIcon className="w-10 h-10 text-gray-400" />
             </div>
             <p className="text-gray-500 dark:text-gray-400 text-lg">Aucune photo trouvée</p>
-            <Link to="/" className="inline-flex items-center gap-2 mt-4 text-purple-600 dark:text-purple-400 font-medium">
+            <Link to="/" className="inline-flex items-center gap-2 mt-4 text-amber-600 dark:text-amber-400 font-medium">
               <ArrowLeftIcon className="w-4 h-4" />
               Retour à l'accueil
             </Link>
@@ -246,7 +246,7 @@ const GalleryPage = () => {
                       onClick={() => handlePageChange(i + 1)}
                       className={`w-10 h-10 rounded-lg font-medium ${
                         pagination.page === i + 1
-                          ? 'bg-purple-600 text-white'
+                          ? 'bg-amber-600 text-white'
                           : 'border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300'
                       }`}
                     >

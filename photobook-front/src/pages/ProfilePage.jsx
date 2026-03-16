@@ -18,7 +18,7 @@ import {
 
 const ROLE_LABELS = {
   ROLE_ADMIN:       { label: 'Administrateur', color: 'bg-red-500',    emoji: '🔑' },
-  ROLE_PHOTOGRAPHE: { label: 'Photographe',    color: 'bg-purple-500', emoji: '📷' },
+  ROLE_PHOTOGRAPHE: { label: 'Photographe',    color: 'bg-amber-500', emoji: '📷' },
   ROLE_EMPLOYE:     { label: 'Employé',        color: 'bg-blue-500',   emoji: '💼' },
   ROLE_EMPLOYEE:    { label: 'Employé',        color: 'bg-blue-500',   emoji: '💼' },
   ROLE_CLIENT:      { label: 'Client',         color: 'bg-amber-500',  emoji: '👤' },

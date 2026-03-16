@@ -149,7 +149,7 @@ const InvoicesManagement = () => {
             { label: 'Revenus du mois',    value: formatPrice(stats.monthRevenue),  Icon: CurrencyDollarIcon,   color: 'from-green-500 to-green-600'   },
             { label: 'En attente',         value: formatPrice(stats.pendingAmount), Icon: ClockIcon,            color: 'from-yellow-500 to-yellow-600' },
             { label: 'Factures en retard', value: stats.overdueInvoices,            Icon: ExclamationCircleIcon,color: 'from-red-500 to-red-600'       },
-            { label: 'Total factures',     value: Object.values(stats.statusCounts ?? {}).reduce((a, b) => a + b, 0), Icon: DocumentTextIcon, color: 'from-purple-500 to-purple-600' },
+            { label: 'Total factures',     value: Object.values(stats.statusCounts ?? {}).reduce((a, b) => a + b, 0), Icon: DocumentTextIcon, color: 'from-amber-500 to-amber-600' },
           ].map(({ label, value, Icon, color }) => (
             <div key={label} className={`bg-gradient-to-br ${color} rounded-2xl p-5 text-white shadow-lg`}>
               <div className="flex items-center justify-between">
@@ -164,7 +164,7 @@ const InvoicesManagement = () => {
       {/* Filtres */}
       <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm">
         <div className="flex items-center gap-2 mb-3">
-          <FunnelIcon className="w-5 h-5 text-purple-600" />
+          <FunnelIcon className="w-5 h-5 text-amber-600" />
           <span className="font-medium text-gray-900 dark:text-white">Filtrer :</span>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -179,7 +179,7 @@ const InvoicesManagement = () => {
               onClick={() => setFilterStatus(value)}
               className={`px-4 py-2 rounded-lg font-medium transition-all ${
                 filterStatus === value
-                  ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg'
+                  ? 'bg-gradient-to-r from-amber-600 to-orange-600 text-white shadow-lg'
                   : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
               }`}
             >
@@ -247,7 +247,7 @@ const InvoicesManagement = () => {
             <select
               value={payMethod}
               onChange={(e) => setPayMethod(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 mb-4 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 mb-4 focus:ring-2 focus:ring-amber-500 focus:border-transparent"
             >
               {['Mobile Money','Espèces','Virement','Orange Money','MTN Money'].map(m => (
                 <option key={m} value={m}>{m}</option>

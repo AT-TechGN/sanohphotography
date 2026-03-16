@@ -98,7 +98,7 @@ const AdminDashboard = () => {
   const getActivityIcon = (type) => {
     switch (type) {
       case 'booking':
-        return <CalendarDaysIcon className="w-5 h-5 text-purple-600" />;
+        return <CalendarDaysIcon className="w-5 h-5 text-amber-600" />;
       case 'review':
         return <StarIcon className="w-5 h-5 text-yellow-600" />;
       case 'invoice':
@@ -140,7 +140,7 @@ const AdminDashboard = () => {
               onClick={() => setTimeRange(days)}
               className={`px-4 py-2 rounded-lg font-medium transition-all ${
                 timeRange === days
-                  ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg'
+                  ? 'bg-gradient-to-r from-amber-600 to-orange-600 text-white shadow-lg'
                   : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
               }`}
             >
@@ -154,7 +154,7 @@ const AdminDashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
 
         {/* CORRECTION 3 : </div> fermants manquants pour chaque card KPI */}
-        <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl p-6 text-white shadow-lg">
+        <div className="bg-gradient-to-br from-amber-500 to-amber-600 rounded-2xl p-6 text-white shadow-lg">
           <div className="flex items-center justify-between mb-4">
             <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
               <CalendarDaysIcon className="w-6 h-6" />
@@ -162,10 +162,10 @@ const AdminDashboard = () => {
             <ArrowTrendingUpIcon className="w-5 h-5 opacity-75" />
           </div>
           <div className="text-3xl font-bold mb-1">{kpis?.todayBookings || 0}</div>
-          <div className="text-sm text-purple-100">Réservations aujourd'hui</div>
+          <div className="text-sm text-amber-100">Réservations aujourd'hui</div>
         </div>
 
-        <div className="bg-gradient-to-br from-pink-500 to-pink-600 rounded-2xl p-6 text-white shadow-lg">
+        <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl p-6 text-white shadow-lg">
           <div className="flex items-center justify-between mb-4">
             <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
               <BanknotesIcon className="w-6 h-6" />
@@ -173,7 +173,7 @@ const AdminDashboard = () => {
             <ArrowTrendingUpIcon className="w-5 h-5 opacity-75" />
           </div>
           <div className="text-3xl font-bold mb-1">{formatCurrency(kpis?.monthRevenue || 0)}</div>
-          <div className="text-sm text-pink-100">Revenus ce mois</div>
+          <div className="text-sm text-orange-100">Revenus ce mois</div>
         </div>
 
         <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl p-6 text-white shadow-lg">
@@ -317,7 +317,7 @@ const AdminDashboard = () => {
           <div className="space-y-3 max-h-96 overflow-y-auto">
             {upcomingEvents.length > 0 ? (
               upcomingEvents.map((event) => (
-                <Link key={event.id} to="/admin/bookings" className="block p-4 rounded-xl border-l-4 border-purple-500 bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors">
+                <Link key={event.id} to="/admin/bookings" className="block p-4 rounded-xl border-l-4 border-amber-500 bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors">
                   <div className="flex items-center justify-between mb-2">
                     <h4 className="font-semibold text-gray-900 dark:text-white">{event.title}</h4>
                     <span className={`px-2 py-1 text-xs rounded-full ${event.status === 'confirmed' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'}`}>
@@ -340,12 +340,12 @@ const AdminDashboard = () => {
 
       {/* Quick Actions */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Link to="/admin/bookings" className="bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-2xl p-6 hover:shadow-lg transition-all text-center">
+        <Link to="/admin/bookings" className="bg-gradient-to-br from-amber-500 to-amber-600 text-white rounded-2xl p-6 hover:shadow-lg transition-all text-center">
           <CalendarDaysIcon className="w-8 h-8 mx-auto mb-2" />
           <div className="font-semibold">Gérer Réservations</div>
         </Link>
 
-        <Link to="/admin/photos" className="bg-gradient-to-br from-pink-500 to-pink-600 text-white rounded-2xl p-6 hover:shadow-lg transition-all text-center">
+        <Link to="/admin/photos" className="bg-gradient-to-br from-orange-500 to-orange-600 text-white rounded-2xl p-6 hover:shadow-lg transition-all text-center">
           <PhotoIcon className="w-8 h-8 mx-auto mb-2" />
           <div className="font-semibold">Gérer Photos</div>
         </Link>

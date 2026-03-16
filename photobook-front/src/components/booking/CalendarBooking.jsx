@@ -75,7 +75,7 @@ const CalendarBooking = ({ onDateSelect, onEventClick }) => {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-96">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600" />
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-600" />
       </div>
     );
   }
@@ -127,7 +127,7 @@ const CalendarBooking = ({ onDateSelect, onEventClick }) => {
         {[
           { color: 'bg-yellow-500',  label: 'En attente'  },
           { color: 'bg-green-500',   label: 'Confirmée'   },
-          { color: 'bg-purple-500',  label: 'En cours'    },
+          { color: 'bg-amber-500',  label: 'En cours'    },
           { color: 'bg-blue-500',    label: 'Terminée'    },
           { color: 'bg-red-500',     label: 'Annulée'     },
         ].map(({ color, label }) => (
