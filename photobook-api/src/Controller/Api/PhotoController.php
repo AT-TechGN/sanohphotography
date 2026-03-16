@@ -503,16 +503,4 @@ final class PhotoController extends AbstractController
         return $this->json($data);
     }
 
-    /**
-     * Statistiques photos
-     */
-        }
-
-        return $this->json([
-            'totalPhotos' => $totalPhotos,
-            'totalAlbums' => $totalAlbums,
-            'publicAlbums' => count($publicAlbums),
-            'photosThisMonth' => $photosThisMonth,
-        ]);
-    }
 }
