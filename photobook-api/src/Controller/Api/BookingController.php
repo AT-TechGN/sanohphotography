@@ -155,7 +155,22 @@ final class BookingController extends AbstractController
         $criteria = ['client' => $this->getUser()];
         if ($status) $criteria['status'] = $status;
 
-        $bookings = $this->bookingRepository->findBy($criteria, ['bookingDate' => 'DESC', 'startTime' => 'DESC']);
+        // JOIN FETCH pour charger les associations en une requête
+        $qb = $this->bookingRepository->createQueryBuilder('b')
+            ->addSelect('service', 'employee', 'empUser')
+            ->leftJoin('b.service',  'service')
+            ->leftJoin('b.employee', 'employee')
+            ->leftJoin('employee.user', 'empUser')
+            ->where('b.client = :client')
+            ->setParameter('client', $this->getUser())
+            ->orderBy('b.bookingDate', 'DESC')
+            ->addOrderBy('b.startTime', 'DESC');
+
+        if ($status) {
+            $qb->andWhere('b.status = :status')->setParameter('status', $status);
+        }
+
+        $bookings = $qb->getQuery()->getResult();
 
         return $this->json(array_map([$this, 'serializeBooking'], $bookings));
     }
@@ -371,7 +386,13 @@ final class BookingController extends AbstractController
         $startDate = $request->query->get('start_date');
         $endDate   = $request->query->get('end_date');
 
+        // JOIN FETCH pour éviter le lazy loading N+1 et les exceptions d'association
         $qb = $this->bookingRepository->createQueryBuilder('b')
+            ->addSelect('client', 'service', 'employee', 'empUser')
+            ->leftJoin('b.client',   'client')
+            ->leftJoin('b.service',  'service')
+            ->leftJoin('b.employee', 'employee')
+            ->leftJoin('employee.user', 'empUser')
             ->orderBy('b.bookingDate', 'DESC')
             ->addOrderBy('b.startTime', 'DESC');
 
@@ -379,10 +400,14 @@ final class BookingController extends AbstractController
             $qb->andWhere('b.status = :status')->setParameter('status', $status);
         }
         if ($startDate) {
-            $qb->andWhere('b.bookingDate >= :start')->setParameter('start', new \DateTime($startDate));
+            try {
+                $qb->andWhere('b.bookingDate >= :start')->setParameter('start', new \DateTime($startDate));
+            } catch (\Exception) {}
         }
         if ($endDate) {
-            $qb->andWhere('b.bookingDate <= :end')->setParameter('end', new \DateTime($endDate));
+            try {
+                $qb->andWhere('b.bookingDate <= :end')->setParameter('end', new \DateTime($endDate));
+            } catch (\Exception) {}
         }
 
         $bookings = $qb->getQuery()->getResult();
@@ -481,11 +506,11 @@ final class BookingController extends AbstractController
                 'email'     => $client->getEmail(),
                 'phone'     => $client->getPhone(),
             ] : null,
-            // CORRECTION : Employee est lié à User — on expose firstName/lastName depuis user
+            // Employee lié à User — protection complète contre les nulls
             'assignedEmployee' => $employee ? [
                 'id'        => $employee->getId(),
-                'firstName' => $employee->getUser()->getFirstName(),
-                'lastName'  => $employee->getUser()->getLastName(),
+                'firstName' => $employee->getUser()?->getFirstName() ?? '',
+                'lastName'  => $employee->getUser()?->getLastName() ?? '',
                 'position'  => $employee->getPosition(),
             ] : null,
         ];
