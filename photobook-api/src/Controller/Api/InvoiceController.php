@@ -148,9 +148,14 @@ final class InvoiceController extends AbstractController
 
         $pdfContent = $this->pdfGenerator->generateInvoicePdf($invoice);
 
+        $filename = 'facture-' . $invoice->getInvoiceNumber() . '.pdf';
+
         $response = new Response($pdfContent);
         $response->headers->set('Content-Type', 'application/pdf');
-        $response->headers->set('Content-Disposition', 'attachment; filename="facture-' . $invoice->getInvoiceNumber() . '.pdf"');
+        $response->headers->set('Content-Disposition', 'attachment; filename="' . $filename . '"');
+        $response->headers->set('Content-Length', strlen($pdfContent));
+        $response->headers->set('Cache-Control', 'private, no-cache, no-store');
+        $response->headers->set('Access-Control-Expose-Headers', 'Content-Disposition');
 
         return $response;
     }

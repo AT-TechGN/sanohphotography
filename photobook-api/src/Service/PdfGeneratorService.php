@@ -8,7 +8,8 @@ use Dompdf\Options;
 use Twig\Environment;
 
 /**
- * Service de génération de PDF pour les factures
+ * Génère des PDFs de factures style ticket boutique
+ * Utilise dompdf + template Twig
  */
 class PdfGeneratorService
 {
@@ -17,52 +18,52 @@ class PdfGeneratorService
     ) {}
 
     /**
-     * Générer une facture en PDF
+     * Générer une facture PDF — format A5 portrait (style ticket boutique)
      */
     public function generateInvoicePdf(Invoice $invoice): string
     {
-        // Configuration de dompdf
-        $pdfOptions = new Options();
-        $pdfOptions->set('defaultFont', 'Arial');
-        $pdfOptions->setIsRemoteEnabled(true);
+        $options = new Options();
+        $options->set('defaultFont', 'Arial');
+        $options->set('isHtml5ParserEnabled', true);
+        $options->set('isRemoteEnabled', false); // sécurité : pas de ressources externes
+        $options->set('dpi', 150);
+        $options->set('isFontSubsettingEnabled', true);
 
-        $dompdf = new Dompdf($pdfOptions);
+        $dompdf = new Dompdf($options);
 
-        // Générer le HTML depuis le template Twig
         $html = $this->twig->render('pdf/invoice.html.twig', [
             'invoice' => $invoice,
         ]);
 
-        // Charger le HTML
-        $dompdf->loadHtml($html);
+        $dompdf->loadHtml($html, 'UTF-8');
 
-        // Format A4, portrait
-        $dompdf->setPaper('A4', 'portrait');
+        // Format A5 portrait — idéal pour un ticket facture compact
+        $dompdf->setPaper('A5', 'portrait');
 
-        // Rendre le PDF
         $dompdf->render();
 
-        // Retourner le contenu du PDF
         return $dompdf->output();
     }
 
     /**
-     * Générer un devis en PDF
+     * Générer un devis PDF
      */
     public function generateQuotePdf(Invoice $invoice): string
     {
-        $pdfOptions = new Options();
-        $pdfOptions->set('defaultFont', 'Arial');
-        $pdfOptions->setIsRemoteEnabled(true);
+        $options = new Options();
+        $options->set('defaultFont', 'Arial');
+        $options->set('isHtml5ParserEnabled', true);
+        $options->set('isRemoteEnabled', false);
+        $options->set('dpi', 150);
 
-        $dompdf = new Dompdf($pdfOptions);
+        $dompdf = new Dompdf($options);
 
-        $html = $this->twig->render('pdf/quote.html.twig', [
+        $html = $this->twig->render('pdf/invoice.html.twig', [
             'invoice' => $invoice,
         ]);
 
-        $dompdf->loadHtml($html);
-        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->loadHtml($html, 'UTF-8');
+        $dompdf->setPaper('A5', 'portrait');
         $dompdf->render();
 
         return $dompdf->output();

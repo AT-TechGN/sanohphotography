@@ -7,7 +7,7 @@ import Loading from '../../components/common/Loading';
 import {
   DocumentTextIcon, ArrowDownTrayIcon, CheckCircleIcon,
   XCircleIcon, FunnelIcon, CurrencyDollarIcon,
-  ClockIcon, ExclamationCircleIcon,
+  ClockIcon, ExclamationCircleIcon, EyeIcon,
 } from '@heroicons/react/24/outline';
 
 const InvoicesManagement = () => {
@@ -36,6 +36,15 @@ const InvoicesManagement = () => {
       showError('Erreur chargement factures');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handlePreviewPdf = async (id) => {
+    try {
+      await invoiceService.previewPdf(id);
+    } catch (err) {
+      console.error(err);
+      showError('Erreur aperçu PDF');
     }
   };
 
@@ -217,6 +226,9 @@ const InvoicesManagement = () => {
                   <td className="px-6 py-4">{getStatusBadge(invoice.status)}</td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">
+                      <button onClick={() => handlePreviewPdf(invoice.id)} className="p-2 text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-lg transition-colors" title="Aperçu PDF">
+                        <EyeIcon className="w-5 h-5" />
+                      </button>
                       <button onClick={() => handleDownloadPdf(invoice.id, invoice.invoiceNumber)} className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors" title="Télécharger PDF">
                         <ArrowDownTrayIcon className="w-5 h-5" />
                       </button>

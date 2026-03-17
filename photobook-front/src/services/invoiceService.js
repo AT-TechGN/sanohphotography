@@ -46,8 +46,21 @@ const invoiceService = {
    * Télécharger PDF
    */
   async downloadPdf(id) {
-    const response = await api.get(`/invoices/${id}/pdf`, { responseType: 'blob' });
+    const response = await api.get(`/invoices/${id}/pdf`, {
+      responseType: 'blob',
+      headers: { Accept: 'application/pdf' },
+    });
     return response.data;
+  },
+
+  /**
+   * Prévisualiser PDF dans un nouvel onglet
+   */
+  async previewPdf(id) {
+    const blob = await this.downloadPdf(id);
+    const url  = window.URL.createObjectURL(new Blob([blob], { type: 'application/pdf' }));
+    window.open(url, '_blank');
+    setTimeout(() => window.URL.revokeObjectURL(url), 30000);
   },
 
   /**
