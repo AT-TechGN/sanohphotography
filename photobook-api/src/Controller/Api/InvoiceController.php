@@ -39,7 +39,7 @@ final class InvoiceController extends AbstractController
     #[Route('', name: 'api_invoices_list', methods: ['GET'])]
     public function getAll(Request $request): JsonResponse
     {
-        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+        $this->denyAccessUnlessGranted('ROLE_PHOTOGRAPHE');
 
         $status = $request->query->get('status');
         $page   = max(1, (int)$request->query->get('page', 1));
@@ -87,7 +87,7 @@ final class InvoiceController extends AbstractController
     #[Route('', name: 'api_invoice_create', methods: ['POST'])]
     public function create(Request $request): JsonResponse
     {
-        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+        $this->denyAccessUnlessGranted('ROLE_PHOTOGRAPHE');
 
         $data = json_decode($request->getContent(), true) ?? [];
 
@@ -127,6 +127,63 @@ final class InvoiceController extends AbstractController
             'message' => 'Facture créée',
             'invoice' => $this->serializeInvoice($invoice),
         ], Response::HTTP_CREATED);
+    }
+
+
+    /**
+     * POST /api/invoices/generate/{bookingId}
+     * Génère une facture pour une réservation terminée.
+     * Si la facture existe déjà, la retourne directement (idempotent).
+     */
+    #[Route('/generate/{bookingId}', name: 'api_invoice_generate', methods: ['POST'], requirements: ['bookingId' => '\d+'])]
+    public function generate(int $bookingId): JsonResponse
+    {
+        $this->denyAccessUnlessGranted('ROLE_PHOTOGRAPHE');
+
+        $booking = $this->bookingRepository->find($bookingId);
+        if (!$booking) {
+            return $this->json(['error' => 'Réservation non trouvée'], 404);
+        }
+
+        // Si une facture existe déjà → la retourner (idempotent)
+        $existing = $this->invoiceRepository->findOneBy(['booking' => $booking]);
+        if ($existing) {
+            return $this->json([
+                'message' => 'Facture déjà existante',
+                'invoice' => $this->serializeInvoice($existing),
+                'existing' => true,
+            ]);
+        }
+
+        // Calculer les montants
+        $totalPrice = (float)($booking->getTotalPrice() ?? 0);
+        if ($totalPrice <= 0) {
+            $service = $booking->getService();
+            $totalPrice = (float)($service?->getBasePrice() ?? 0);
+        }
+
+        $taxRate  = 18.00;
+        $amountHt = round($totalPrice / (1 + $taxRate / 100), 2);
+        $amountTtc = $totalPrice > 0 ? $totalPrice : round($amountHt * (1 + $taxRate / 100), 2);
+
+        $invoice = new Invoice();
+        $invoice->setBooking($booking);
+        $invoice->setInvoiceNumber($this->generateInvoiceNumber());
+        $invoice->setAmountHt((string)$amountHt);
+        $invoice->setTaxRate((string)$taxRate);
+        $invoice->setAmountTtc((string)$amountTtc);
+        $invoice->setStatus('pending');
+        $invoice->setDueDate(new \DateTime('+30 days'));
+        $invoice->setCreatedAt(new \DateTime());
+
+        $this->em->persist($invoice);
+        $this->em->flush();
+
+        return $this->json([
+            'message' => 'Facture générée avec succès',
+            'invoice' => $this->serializeInvoice($invoice),
+            'existing' => false,
+        ], 201);
     }
 
     /**

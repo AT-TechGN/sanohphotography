@@ -92,10 +92,11 @@ security:
         - { path: ^/api/services,               roles: PUBLIC_ACCESS, methods: [GET] }
 
         # ── Factures ──────────────────────────────────────────────────────
-        - { path: ^/api/invoices/my-invoices,   roles: ROLE_CLIENT }
-        - { path: ^/api/invoices/stats,         roles: ROLE_ADMIN }
-        - { path: ^/api/invoices/export,        roles: ROLE_ADMIN }
-        - { path: ^/api/invoices,               roles: ROLE_ADMIN }
+        - { path: ^/api/invoices/my-invoices,       roles: ROLE_CLIENT }
+        - { path: ^/api/invoices/stats,             roles: ROLE_PHOTOGRAPHE }
+        - { path: ^/api/invoices/export,            roles: ROLE_PHOTOGRAPHE }
+        - { path: ^/api/invoices/generate,          roles: ROLE_PHOTOGRAPHE }
+        - { path: ^/api/invoices,                   roles: ROLE_PHOTOGRAPHE }
 
         # ── Photos et albums admin ────────────────────────────────────────
         - { path: ^/api/admin,                  roles: ROLE_EMPLOYE }

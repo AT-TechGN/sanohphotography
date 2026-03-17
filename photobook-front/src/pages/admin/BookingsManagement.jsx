@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import bookingService from '../../services/bookingService';
+import invoiceService from '../../services/invoiceService';
 import employeeService from '../../services/employeeService';
 import useUIStore from '../../stores/uiStore';
 import Loading from '../../components/common/Loading';
 import {
-  CalendarDaysIcon, FunnelIcon, MagnifyingGlassIcon,
+  CalendarDaysIcon, DocumentTextIcon, FunnelIcon, MagnifyingGlassIcon,
   CheckCircleIcon, XCircleIcon, ClockIcon, EyeIcon,
   UserIcon, CameraIcon, ChevronDownIcon,
 } from '@heroicons/react/24/outline';
@@ -52,6 +53,28 @@ const BookingsManagement = () => {
       setEmployees(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const handleGenerateInvoice = async (bookingId) => {
+    setGenLoading(bookingId);
+    try {
+      const res = await invoiceService.generateForBooking(bookingId);
+      if (res.existing) {
+        showSuccess('Facture déjà existante — ouverture…');
+      } else {
+        showSuccess('Facture générée avec succès !');
+      }
+      setInvoiceMap(prev => ({ ...prev, [bookingId]: res.invoice }));
+      // Proposer d'ouvrir le PDF
+      if (res.invoice?.id) {
+        await invoiceService.previewPdf(res.invoice.id);
+      }
+    } catch (err) {
+      console.error(err);
+      showError(err.response?.data?.error || 'Erreur génération facture');
+    } finally {
+      setGenLoading(null);
     }
   };
 
@@ -271,8 +294,21 @@ const BookingsManagement = () => {
                         )}
                         {booking.status === 'confirmed' && (
                           <button onClick={() => handleStatusChange(booking.id, 'completed')}
-                            className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors" title="Terminer">
+                            className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors" title="Terminer la réservation">
                             <CheckCircleIcon className="w-4 h-4" />
+                          </button>
+                        )}
+                        {booking.status === 'completed' && (
+                          <button
+                            onClick={() => handleGenerateInvoice(booking.id)}
+                            disabled={genLoading === booking.id}
+                            className="p-2 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-colors disabled:opacity-50"
+                            title={invoiceMap[booking.id] ? 'Voir la facture PDF' : 'Générer la facture PDF'}
+                          >
+                            {genLoading === booking.id
+                              ? <span className="block w-4 h-4 border-2 border-green-600 border-t-transparent rounded-full animate-spin" />
+                              : <DocumentTextIcon className="w-4 h-4" />
+                            }
                           </button>
                         )}
                         {/* Assigner/réassigner employé */}

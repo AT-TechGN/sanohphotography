@@ -43,6 +43,14 @@ const invoiceService = {
   },
 
   /**
+   * Générer une facture pour une réservation terminée
+   */
+  async generateForBooking(bookingId) {
+    const response = await api.post(`/invoices/generate/${bookingId}`);
+    return response.data;
+  },
+
+  /**
    * Télécharger PDF
    */
   async downloadPdf(id) {
