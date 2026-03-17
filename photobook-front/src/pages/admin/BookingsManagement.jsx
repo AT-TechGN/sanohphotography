@@ -26,6 +26,8 @@ const BookingsManagement = () => {
   const [loading,        setLoading]        = useState(true);
   const [assignModal,    setAssignModal]    = useState(null); // { bookingId } | null
   const [selectedEmpId,  setSelectedEmpId]  = useState('');
+  const [genLoading,     setGenLoading]     = useState(null); // bookingId en cours de génération
+  const [invoiceMap,     setInvoiceMap]     = useState({});   // bookingId → invoice généré
   const [filters, setFilters] = useState({
     status: 'all', search: '', startDate: '', endDate: '',
   });
