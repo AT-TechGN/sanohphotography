@@ -51,25 +51,9 @@ const invoiceService = {
   },
 
   /**
-   * Télécharger PDF
+   * PDF généré côté frontend via jsPDF + html2canvas (InvoicePDF.jsx)
+   * Ces méthodes ne sont plus nécessaires — voir useInvoicePDF()
    */
-  async downloadPdf(id) {
-    const response = await api.get(`/invoices/${id}/pdf`, {
-      responseType: 'blob',
-      headers: { Accept: 'application/pdf' },
-    });
-    return response.data;
-  },
-
-  /**
-   * Prévisualiser PDF dans un nouvel onglet
-   */
-  async previewPdf(id) {
-    const blob = await this.downloadPdf(id);
-    const url  = window.URL.createObjectURL(new Blob([blob], { type: 'application/pdf' }));
-    window.open(url, '_blank');
-    setTimeout(() => window.URL.revokeObjectURL(url), 30000);
-  },
 
   /**
    * Marquer comme payée (admin)

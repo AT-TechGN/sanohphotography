@@ -1,28 +1,28 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import invoiceService from '../../services/invoiceService';
 import useUIStore from '../../stores/uiStore';
 import Loading from '../../components/common/Loading';
+import InvoicePDF, { useInvoicePDF } from '../../components/common/InvoicePDF';
 import {
   DocumentTextIcon, ArrowDownTrayIcon, CheckCircleIcon,
-  XCircleIcon, FunnelIcon, CurrencyDollarIcon,
-  ClockIcon, ExclamationCircleIcon, EyeIcon,
+  XCircleIcon, FunnelIcon, CurrencyDollarIcon, EyeIcon,
+  ClockIcon, ExclamationCircleIcon,
 } from '@heroicons/react/24/outline';
 
 const InvoicesManagement = () => {
-  const [invoices,      setInvoices]      = useState([]);
-  const [stats,         setStats]         = useState(null);
-  const [loading,       setLoading]       = useState(true);
-  const [filterStatus,  setFilterStatus]  = useState('all');
-  const [payModal,      setPayModal]      = useState(null); // { id } | null
-  const [payMethod,     setPayMethod]     = useState('Mobile Money');
-  const [exportDates,   setExportDates]   = useState({ start: '', end: '' });
+  const [invoices,     setInvoices]     = useState([]);
+  const [stats,        setStats]        = useState(null);
+  const [loading,      setLoading]      = useState(true);
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [payModal,     setPayModal]     = useState(null);
+  const [payMethod,    setPayMethod]    = useState('Mobile Money');
+  const [pdfLoading,   setPdfLoading]   = useState(null); // id facture en cours
+  const [currentInvoice, setCurrentInvoice] = useState(null); // pour le template PDF
+
   const { showSuccess, showError } = useUIStore();
+  const { templateRef, generate }  = useInvoicePDF();
 
-  useEffect(() => { loadData(); }, []);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       setLoading(true);
       const [invoicesData, statsData] = await Promise.all([
@@ -37,36 +37,34 @@ const InvoicesManagement = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [showError]);
 
-  const handlePreviewPdf = async (id) => {
+  useEffect(() => { loadData(); }, [loadData]);
+
+  /* ── Génération PDF côté frontend ──────────────────────────────────────── */
+  const handlePdf = async (invoice, mode = 'download') => {
+    setPdfLoading(invoice.id);
     try {
-      await invoiceService.previewPdf(id);
+      // Charger les détails complets si nécessaire
+      let full = invoice;
+      if (!invoice.booking?.client?.email) {
+        try { full = await invoiceService.getById(invoice.id); } catch { /* utiliser ce qu'on a */ }
+      }
+      setCurrentInvoice(full);
+
+      // Attendre que React rende le composant avec les nouvelles données
+      await new Promise(r => setTimeout(r, 80));
+      await generate(full, mode);
+      showSuccess(mode === 'preview' ? 'PDF ouvert' : 'Facture téléchargée');
     } catch (err) {
       console.error(err);
-      showError('Erreur aperçu PDF');
+      showError('Erreur génération PDF');
+    } finally {
+      setPdfLoading(null);
     }
   };
 
-  const handleDownloadPdf = async (id, invoiceNumber) => {
-    try {
-      const blob = await invoiceService.downloadPdf(id);
-      const url  = window.URL.createObjectURL(blob);
-      const a    = document.createElement('a');
-      a.href     = url;
-      a.download = `facture-${invoiceNumber}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-      showSuccess('Facture téléchargée');
-    } catch (err) {
-      console.error(err);
-      showError('Erreur téléchargement PDF');
-    }
-  };
-
-  // BUG CORRIGÉ : prompt() remplacé par une modale inline
+  /* ── Marquer payée ─────────────────────────────────────────────────────── */
   const handleMarkPaid = async () => {
     if (!payModal) return;
     try {
@@ -81,8 +79,8 @@ const InvoicesManagement = () => {
     }
   };
 
+  /* ── Annuler ───────────────────────────────────────────────────────────── */
   const handleCancel = async (id) => {
-    // BUG CORRIGÉ : confirm() → window.confirm()
     if (!window.confirm('Annuler cette facture ?')) return;
     try {
       await invoiceService.cancel(id);
@@ -94,60 +92,36 @@ const InvoicesManagement = () => {
     }
   };
 
-  const handleExportCsv = async () => {
-    try {
-      const blob = await invoiceService.exportCsv(
-        exportDates.start || null,
-        exportDates.end   || null,
-      );
-      const url  = window.URL.createObjectURL(blob);
-      const a    = document.createElement('a');
-      a.href     = url;
-      a.download = `factures-export-${new Date().toISOString().split('T')[0]}.csv`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-      showSuccess('Export CSV téléchargé');
-    } catch (err) {
-      console.error(err);
-      showError('Erreur export CSV');
-    }
-  };
-
-  const formatPrice = (price) =>
-    new Intl.NumberFormat('fr-GN', { style: 'currency', currency: 'GNF', minimumFractionDigits: 0 }).format(price);
+  const formatPrice = (v) =>
+    new Intl.NumberFormat('fr-GN', { style: 'currency', currency: 'GNF', minimumFractionDigits: 0 }).format(Number(v ?? 0));
 
   const getStatusBadge = (status) => {
     const map = {
-      pending:   { color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400', label: 'En attente' },
-      paid:      { color: 'bg-green-100  text-green-800  dark:bg-green-900/30  dark:text-green-400',  label: 'Payée'     },
-      cancelled: { color: 'bg-red-100    text-red-800    dark:bg-red-900/30    dark:text-red-400',    label: 'Annulée'   },
+      pending:   { cls: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400', label: 'En attente' },
+      paid:      { cls: 'bg-green-100  text-green-800  dark:bg-green-900/30  dark:text-green-400',  label: 'Payée'      },
+      cancelled: { cls: 'bg-red-100    text-red-800    dark:bg-red-900/30    dark:text-red-400',    label: 'Annulée'    },
     };
-    const { color, label } = map[status] || map.pending;
-    return <span className={`px-3 py-1 rounded-full text-xs font-semibold ${color}`}>{label}</span>;
+    const { cls, label } = map[status] ?? map.pending;
+    return <span className={`px-3 py-1 rounded-full text-xs font-semibold ${cls}`}>{label}</span>;
   };
 
-  const filteredInvoices = filterStatus === 'all'
+  const filtered = filterStatus === 'all'
     ? invoices
-    : invoices.filter((inv) => inv.status === filterStatus);
+    : invoices.filter(i => i.status === filterStatus);
 
   if (loading) return <Loading fullScreen text="Chargement des factures..." />;
 
   return (
     <div className="p-3 sm:p-4 lg:p-8 space-y-6">
+
+      {/* Template PDF hors écran — rendu pour la capture html2canvas */}
+      <InvoicePDF invoice={currentInvoice} templateRef={templateRef} />
+
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Gestion des Factures</h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-1">{filteredInvoices.length} facture(s)</p>
-        </div>
-        <div className="flex items-center gap-3 flex-wrap">
-          <input type="date" value={exportDates.start} onChange={(e) => setExportDates(p => ({ ...p, start: e.target.value }))} className="px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-sm" />
-          <input type="date" value={exportDates.end}   onChange={(e) => setExportDates(p => ({ ...p, end:   e.target.value }))} className="px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-sm" />
-          <button onClick={handleExportCsv} className="inline-flex items-center gap-2 px-5 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl font-medium hover:shadow-lg transition-all">
-            <ArrowDownTrayIcon className="w-5 h-5" /> Export CSV
-          </button>
+          <p className="text-gray-500 dark:text-gray-400 mt-1">{filtered.length} facture(s)</p>
         </div>
       </div>
 
@@ -155,14 +129,17 @@ const InvoicesManagement = () => {
       {stats && (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { label: 'Revenus du mois',    value: formatPrice(stats.monthRevenue),  Icon: CurrencyDollarIcon,   color: 'from-green-500 to-green-600'   },
-            { label: 'En attente',         value: formatPrice(stats.pendingAmount), Icon: ClockIcon,            color: 'from-yellow-500 to-yellow-600' },
-            { label: 'Factures en retard', value: stats.overdueInvoices,            Icon: ExclamationCircleIcon,color: 'from-red-500 to-red-600'       },
-            { label: 'Total factures',     value: Object.values(stats.statusCounts ?? {}).reduce((a, b) => a + b, 0), Icon: DocumentTextIcon, color: 'from-amber-500 to-amber-600' },
+            { label: 'Revenus du mois',    value: formatPrice(stats.monthRevenue),  Icon: CurrencyDollarIcon,    color: 'from-green-500  to-green-600'  },
+            { label: 'En attente',         value: formatPrice(stats.pendingAmount), Icon: ClockIcon,             color: 'from-yellow-500 to-yellow-600' },
+            { label: 'Factures en retard', value: stats.overdueInvoices ?? 0,       Icon: ExclamationCircleIcon, color: 'from-red-500    to-red-600'    },
+            { label: 'Total factures',     value: invoices.length,                  Icon: DocumentTextIcon,      color: 'from-amber-500  to-amber-600'  },
           ].map(({ label, value, Icon, color }) => (
             <div key={label} className={`bg-gradient-to-br ${color} rounded-2xl p-5 text-white shadow-lg`}>
               <div className="flex items-center justify-between">
-                <div><p className="text-white/80 text-sm">{label}</p><p className="text-2xl font-bold mt-1">{value}</p></div>
+                <div>
+                  <p className="text-white/80 text-sm">{label}</p>
+                  <p className="text-2xl font-bold mt-1">{value}</p>
+                </div>
                 <Icon className="w-10 h-10 text-white/30" />
               </div>
             </div>
@@ -178,15 +155,16 @@ const InvoicesManagement = () => {
         </div>
         <div className="flex flex-wrap gap-2">
           {[
-            { value: 'all',       label: `Toutes (${invoices.length})`                                  },
-            { value: 'pending',   label: `En attente (${invoices.filter(i => i.status === 'pending').length})`  },
+            { value: 'all',       label: `Toutes (${invoices.length})`                                           },
+            { value: 'pending',   label: `En attente (${invoices.filter(i => i.status === 'pending').length})`   },
             { value: 'paid',      label: `Payées (${invoices.filter(i => i.status === 'paid').length})`          },
             { value: 'cancelled', label: `Annulées (${invoices.filter(i => i.status === 'cancelled').length})`   },
           ].map(({ value, label }) => (
             <button
               key={value}
+              type="button"
               onClick={() => setFilterStatus(value)}
-              className={`px-4 py-2 rounded-lg font-medium transition-all ${
+              className={`px-4 py-2 rounded-lg font-medium transition-all text-sm ${
                 filterStatus === value
                   ? 'bg-gradient-to-r from-amber-600 to-orange-600 text-white shadow-lg'
                   : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
@@ -204,41 +182,85 @@ const InvoicesManagement = () => {
           <table className="w-full">
             <thead className="bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
               <tr>
-                {['N° Facture','Client','Service','Montant','Date','Statut','Actions'].map(h => (
-                  <th key={h} className="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase">{h}</th>
+                {['N° Facture', 'Client', 'Service', 'Montant TTC', 'Date', 'Statut', 'Actions'].map(h => (
+                  <th key={h} className="px-4 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase whitespace-nowrap">
+                    {h}
+                  </th>
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-              {filteredInvoices.length === 0 ? (
-                <tr><td colSpan={7} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">Aucune facture</td></tr>
-              ) : filteredInvoices.map((invoice) => (
+              {filtered.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+                    Aucune facture
+                  </td>
+                </tr>
+              ) : filtered.map((invoice) => (
                 <tr key={invoice.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-                  <td className="px-6 py-4 font-medium text-gray-900 dark:text-white">{invoice.invoiceNumber}</td>
-                  <td className="px-6 py-4 text-gray-700 dark:text-gray-300">
+                  <td className="px-4 py-4 font-mono font-medium text-gray-900 dark:text-white text-sm">
+                    {invoice.invoiceNumber}
+                  </td>
+                  <td className="px-4 py-4 text-gray-700 dark:text-gray-300 text-sm">
                     {invoice.booking?.client?.firstName} {invoice.booking?.client?.lastName}
                   </td>
-                  <td className="px-6 py-4 text-gray-700 dark:text-gray-300">{invoice.booking?.service?.name}</td>
-                  <td className="px-6 py-4 font-bold text-gray-900 dark:text-white">{formatPrice(invoice.amount)}</td>
-                  <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
-                    {new Date(invoice.issuedAt).toLocaleDateString('fr-FR')}
+                  <td className="px-4 py-4 text-gray-700 dark:text-gray-300 text-sm">
+                    {invoice.booking?.service?.name ?? '—'}
                   </td>
-                  <td className="px-6 py-4">{getStatusBadge(invoice.status)}</td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-2">
-                      <button onClick={() => handlePreviewPdf(invoice.id)} className="p-2 text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-lg transition-colors" title="Aperçu PDF">
-                        <EyeIcon className="w-5 h-5" />
+                  <td className="px-4 py-4 font-bold text-gray-900 dark:text-white text-sm">
+                    {formatPrice(invoice.amountTtc ?? invoice.amount)}
+                  </td>
+                  <td className="px-4 py-4 text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                    {invoice.issuedAt
+                      ? new Date(invoice.issuedAt).toLocaleDateString('fr-FR')
+                      : '—'}
+                  </td>
+                  <td className="px-4 py-4">{getStatusBadge(invoice.status)}</td>
+                  <td className="px-4 py-4">
+                    <div className="flex items-center gap-1">
+
+                      {/* Aperçu PDF */}
+                      <button
+                        type="button"
+                        onClick={() => handlePdf(invoice, 'preview')}
+                        disabled={pdfLoading === invoice.id}
+                        title="Aperçu PDF"
+                        className="p-2 text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-lg transition-colors disabled:opacity-40"
+                      >
+                        {pdfLoading === invoice.id
+                          ? <span className="block w-4 h-4 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
+                          : <EyeIcon className="w-4 h-4" />
+                        }
                       </button>
-                      <button onClick={() => handleDownloadPdf(invoice.id, invoice.invoiceNumber)} className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors" title="Télécharger PDF">
-                        <ArrowDownTrayIcon className="w-5 h-5" />
+
+                      {/* Télécharger PDF */}
+                      <button
+                        type="button"
+                        onClick={() => handlePdf(invoice, 'download')}
+                        disabled={pdfLoading === invoice.id}
+                        title="Télécharger PDF"
+                        className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors disabled:opacity-40"
+                      >
+                        <ArrowDownTrayIcon className="w-4 h-4" />
                       </button>
+
                       {invoice.status === 'pending' && (
                         <>
-                          <button onClick={() => setPayModal({ id: invoice.id })} className="p-2 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-colors" title="Marquer payée">
-                            <CheckCircleIcon className="w-5 h-5" />
+                          <button
+                            type="button"
+                            onClick={() => setPayModal({ id: invoice.id })}
+                            title="Marquer payée"
+                            className="p-2 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-colors"
+                          >
+                            <CheckCircleIcon className="w-4 h-4" />
                           </button>
-                          <button onClick={() => handleCancel(invoice.id)} className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors" title="Annuler">
-                            <XCircleIcon className="w-5 h-5" />
+                          <button
+                            type="button"
+                            onClick={() => handleCancel(invoice.id)}
+                            title="Annuler"
+                            className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                          >
+                            <XCircleIcon className="w-4 h-4" />
                           </button>
                         </>
                       )}
@@ -251,25 +273,33 @@ const InvoicesManagement = () => {
         </div>
       </div>
 
-      {/* Modal paiement — remplace prompt() */}
+      {/* Modal paiement */}
       {payModal && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-6 w-full max-w-sm">
             <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Méthode de paiement</h3>
             <select
               value={payMethod}
-              onChange={(e) => setPayMethod(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 mb-4 focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+              onChange={e => setPayMethod(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white mb-4 focus:ring-2 focus:ring-amber-500 focus:border-transparent"
             >
-              {['Mobile Money','Espèces','Virement','Orange Money','MTN Money'].map(m => (
+              {['Mobile Money', 'Espèces', 'Virement', 'Orange Money', 'MTN Money'].map(m => (
                 <option key={m} value={m}>{m}</option>
               ))}
             </select>
             <div className="flex gap-3">
-              <button onClick={handleMarkPaid} className="flex-1 px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl font-medium hover:shadow-lg transition-all">
+              <button
+                type="button"
+                onClick={handleMarkPaid}
+                className="flex-1 px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl font-medium hover:shadow-lg transition-all"
+              >
                 Confirmer
               </button>
-              <button onClick={() => setPayModal(null)} className="flex-1 px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl font-medium hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
+              <button
+                type="button"
+                onClick={() => setPayModal(null)}
+                className="flex-1 px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl font-medium hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+              >
                 Annuler
               </button>
             </div>

@@ -68,10 +68,7 @@ const BookingsManagement = () => {
         showSuccess('Facture générée avec succès !');
       }
       setInvoiceMap(prev => ({ ...prev, [bookingId]: res.invoice }));
-      // Proposer d'ouvrir le PDF
-      if (res.invoice?.id) {
-        await invoiceService.previewPdf(res.invoice.id);
-      }
+      // Le PDF peut être généré depuis la page Factures
     } catch (err) {
       console.error(err);
       showError(err.response?.data?.error || 'Erreur génération facture');
