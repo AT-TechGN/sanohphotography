@@ -16,14 +16,14 @@ use Symfony\Component\Routing\Attribute\Route;
 final class ContactController extends AbstractController
 {
     public function __construct(
-        private EntityManagerInterface     $em,
-        private ContactMessageRepository   $repo,
-        private BookingRepository          $bookingRepo
+        private EntityManagerInterface   $em,
+        private ContactMessageRepository $repo,
+        private BookingRepository        $bookingRepo
     ) {}
 
-    // ── Routes publiques ──────────────────────────────────────────────────
+    /* ── PUBLIC ─────────────────────────────────────────────────────────────── */
 
-    /** POST /api/contact — Envoyer un message (public, sans auth) */
+    /** POST /api/contact — Envoyer un message (sans authentification) */
     #[Route('', name: 'api_contact_send', methods: ['POST'])]
     public function send(Request $request): JsonResponse
     {
@@ -35,32 +35,36 @@ final class ContactController extends AbstractController
         $body    = trim($data['message'] ?? $data['body']        ?? '');
 
         $errors = [];
-        if (!$name)                                $errors[] = 'Le nom est requis';
+        if (!$name)                                    $errors[] = 'Le nom est requis';
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) $errors[] = 'Email invalide';
-        if (!$subject)                             $errors[] = 'Le sujet est requis';
-        if (strlen($body) < 10)                    $errors[] = 'Le message doit faire au moins 10 caractères';
+        if (!$subject)                                 $errors[] = 'Le sujet est requis';
+        if (strlen($body) < 10)                        $errors[] = 'Le message doit contenir au moins 10 caractères';
 
         if ($errors) {
             return $this->json(['errors' => $errors], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
-        $msg = new ContactMessage();
-        $msg->setSenderName($name)->setSenderEmail($email)
-            ->setSubject($subject)->setBody($body)
-            ->setIsRead(false)->setCreatedAt(new \DateTime());
+        $msg = (new ContactMessage())
+            ->setSenderName($name)
+            ->setSenderEmail($email)
+            ->setSubject($subject)
+            ->setBody($body)
+            ->setIsRead(false)
+            ->setCreatedAt(new \DateTime());
 
         $this->em->persist($msg);
         $this->em->flush();
 
         return $this->json([
-            'message' => 'Message envoyé ! Nous vous répondrons dans les 24h.',
+            'success' => true,
+            'message' => 'Votre message a bien été envoyé. Nous vous répondrons dans les 24h.',
             'id'      => $msg->getId(),
         ], Response::HTTP_CREATED);
     }
 
-    // ── Routes admin ──────────────────────────────────────────────────────
+    /* ── ADMIN ──────────────────────────────────────────────────────────────── */
 
-    /** GET /api/contact — Liste complète (admin) */
+    /** GET /api/contact — Liste tous les messages */
     #[Route('', name: 'api_contact_list', methods: ['GET'])]
     public function list(): JsonResponse
     {
@@ -69,13 +73,13 @@ final class ContactController extends AbstractController
         return $this->json(array_map([$this, 'serialize'], $messages));
     }
 
-    /** GET /api/contact/unread-count — Compteurs pour la cloche (polling) */
+    /** GET /api/contact/unread-count — Compteurs pour la cloche */
     #[Route('/unread-count', name: 'api_contact_unread_count', methods: ['GET'])]
     public function unreadCount(): JsonResponse
     {
         $this->denyAccessUnlessGranted('ROLE_PHOTOGRAPHE');
 
-        $unreadMessages = $this->repo->count(['isRead' => false]);
+        $unreadMessages  = $this->repo->count(['isRead' => false]);
         $pendingBookings = $this->bookingRepo->count(['status' => 'pending']);
 
         return $this->json([
@@ -90,10 +94,13 @@ final class ContactController extends AbstractController
     public function markRead(int $id): JsonResponse
     {
         $this->denyAccessUnlessGranted('ROLE_PHOTOGRAPHE');
+
         $msg = $this->repo->find($id);
         if (!$msg) return $this->json(['error' => 'Message non trouvé'], 404);
+
         $msg->setIsRead(true);
         $this->em->flush();
+
         return $this->json($this->serialize($msg));
     }
 
@@ -102,6 +109,7 @@ final class ContactController extends AbstractController
     public function reply(int $id, Request $request): JsonResponse
     {
         $this->denyAccessUnlessGranted('ROLE_PHOTOGRAPHE');
+
         $msg = $this->repo->find($id);
         if (!$msg) return $this->json(['error' => 'Message non trouvé'], 404);
 
@@ -112,31 +120,35 @@ final class ContactController extends AbstractController
             return $this->json(['error' => 'La réponse doit contenir au moins 5 caractères'], 400);
         }
 
-        $msg->setReplyBody($reply);
-        $msg->setRepliedAt(new \DateTime());
-        $msg->setIsRead(true);
+        $msg->setReplyBody($reply)
+            ->setRepliedAt(new \DateTime())
+            ->setIsRead(true);
+
         $this->em->flush();
 
-        // Tentative d'envoi email si Mailer configuré
-        // (sur WAMP local sans SMTP → on log juste la réponse en base)
-
         return $this->json([
+            'success' => true,
             'message' => 'Réponse enregistrée avec succès',
             'contact' => $this->serialize($msg),
         ]);
     }
 
-    /** DELETE /api/contact/{id} — Supprimer */
+    /** DELETE /api/contact/{id} — Supprimer un message */
     #[Route('/{id}', name: 'api_contact_delete', methods: ['DELETE'], requirements: ['id' => '\d+'])]
     public function delete(int $id): JsonResponse
     {
         $this->denyAccessUnlessGranted('ROLE_PHOTOGRAPHE');
+
         $msg = $this->repo->find($id);
         if (!$msg) return $this->json(['error' => 'Message non trouvé'], 404);
+
         $this->em->remove($msg);
         $this->em->flush();
-        return $this->json(['message' => 'Message supprimé']);
+
+        return $this->json(['success' => true, 'message' => 'Message supprimé']);
     }
+
+    /* ── Sérialisation ──────────────────────────────────────────────────────── */
 
     private function serialize(ContactMessage $m): array
     {
@@ -146,7 +158,7 @@ final class ContactController extends AbstractController
             'senderEmail' => $m->getSenderEmail(),
             'subject'     => $m->getSubject(),
             'body'        => $m->getBody(),
-            'isRead'      => $m->isRead(),
+            'isRead'      => $m->isRead() ?? false,
             'replyBody'   => $m->getReplyBody(),
             'repliedAt'   => $m->getRepliedAt()?->format('c'),
             'createdAt'   => $m->getCreatedAt()?->format('c'),

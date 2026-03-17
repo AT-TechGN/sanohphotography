@@ -5,7 +5,6 @@ namespace App\Entity;
 use App\Repository\ContactMessageRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: ContactMessageRepository::class)]
 class ContactMessage
@@ -28,16 +27,18 @@ class ContactMessage
     private ?string $body = null;
 
     #[ORM\Column]
-    private ?bool $isRead = null;
+    private ?bool $isRead = false;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $replyBody = null;
 
     #[ORM\Column(nullable: true)]
     private ?\DateTime $repliedAt = null;
 
-    #[ORM\Column(type: 'text', nullable: true)]
-    private ?string $replyBody = null;
-
     #[ORM\Column]
     private ?\DateTime $createdAt = null;
+
+    // ── Getters / Setters ─────────────────────────────────────────────────────
 
     public function getId(): ?int
     {
@@ -52,7 +53,6 @@ class ContactMessage
     public function setSenderName(string $senderName): static
     {
         $this->senderName = $senderName;
-
         return $this;
     }
 
@@ -64,7 +64,6 @@ class ContactMessage
     public function setSenderEmail(string $senderEmail): static
     {
         $this->senderEmail = $senderEmail;
-
         return $this;
     }
 
@@ -76,7 +75,6 @@ class ContactMessage
     public function setSubject(string $subject): static
     {
         $this->subject = $subject;
-
         return $this;
     }
 
@@ -88,7 +86,6 @@ class ContactMessage
     public function setBody(string $body): static
     {
         $this->body = $body;
-
         return $this;
     }
 
@@ -100,7 +97,17 @@ class ContactMessage
     public function setIsRead(bool $isRead): static
     {
         $this->isRead = $isRead;
+        return $this;
+    }
 
+    public function getReplyBody(): ?string
+    {
+        return $this->replyBody;
+    }
+
+    public function setReplyBody(?string $replyBody): static
+    {
+        $this->replyBody = $replyBody;
         return $this;
     }
 
@@ -112,7 +119,6 @@ class ContactMessage
     public function setRepliedAt(?\DateTime $repliedAt): static
     {
         $this->repliedAt = $repliedAt;
-
         return $this;
     }
 
@@ -124,7 +130,6 @@ class ContactMessage
     public function setCreatedAt(\DateTime $createdAt): static
     {
         $this->createdAt = $createdAt;
-
         return $this;
     }
 }
