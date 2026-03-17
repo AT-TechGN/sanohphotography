@@ -399,19 +399,24 @@ final class InvoiceController extends AbstractController
             'issuedAt'      => $i->getCreatedAt()?->format('c'),  // alias createdAt
             'dueDate'       => $i->getDueDate()?->format('Y-m-d'),
             'paidAt'        => $i->getPaidAt()?->format('c'),
-            // paymentMethod non présent sur l'entité Invoice
-            'notes'         => $i->getNotes(),
+            // notes et paymentMethod n'existent pas sur l'entité Invoice
             'booking'       => $booking ? [
-                'id'      => $booking->getId(),
+                'id'          => $booking->getId(),
+                'bookingDate' => $booking->getBookingDate()?->format('Y-m-d'),
+                'startTime'   => $booking->getStartTime()?->format('H:i'),
+                'clientNotes' => $booking->getClientNotes(),
+                'totalPrice'  => $booking->getTotalPrice(),
                 'client'  => $client ? [
                     'id'        => $client->getId(),
                     'firstName' => $client->getFirstName(),
                     'lastName'  => $client->getLastName(),
                     'email'     => $client->getEmail(),
+                    'phone'     => $client->getPhone(),
                 ] : null,
                 'service' => $service ? [
-                    'id'   => $service->getId(),
-                    'name' => $service->getName(),
+                    'id'          => $service->getId(),
+                    'name'        => $service->getName(),
+                    'durationMin' => $service->getDurationMin(),
                 ] : null,
             ] : null,
         ];
