@@ -376,7 +376,7 @@ const HomePage = () => {
             PhotoBook Studio allie expertise technique et sensibilité artistique pour transformer chaque séance en œuvre d'art.
           </p>
           <div className="mt-6">
-            <div className="text-2xl font-bold text-white italic">Mamadou Diallo</div>
+            <div className="text-2xl font-bold text-white italic">Ousmane Sanoh</div>
             <div className="text-xs uppercase text-gray-400 mt-1">Photographe fondateur</div>
           </div>
         </div>

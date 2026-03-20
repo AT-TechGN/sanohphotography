@@ -68,7 +68,7 @@ const Footer = () => {
             <ul className="space-y-3 text-sm text-gray-400">
               <li className="flex items-start gap-2">
                 <MapPinIcon className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
-                <span>Conakry, Guinée</span>
+                <span>Kankan, Guinée</span>
               </li>
               <li className="flex items-center gap-2">
                 <EnvelopeIcon className="w-5 h-5 text-amber-400 flex-shrink-0" />
@@ -76,7 +76,7 @@ const Footer = () => {
               </li>
               <li className="flex items-center gap-2">
                 <PhoneIcon className="w-5 h-5 text-amber-400 flex-shrink-0" />
-                <span>+224 620 00 00 00</span>
+                <span>+224 620 00 31 71</span>
               </li>
             </ul>
           </div>
@@ -104,7 +104,7 @@ const Footer = () => {
       <div className="bg-gray-950 border-t border-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <p className="text-center text-sm text-gray-500">
-            © {currentYear} SanohPhoto. Conakry — Tous droits réservés.
+            © {currentYear} SanohPhoto. Kankan — Tous droits réservés.
           </p>
         </div>
       </div>

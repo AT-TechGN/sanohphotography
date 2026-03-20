@@ -17,9 +17,9 @@ const STUDIO = {
   lat:     9.5370,
   lng:    -13.6773,
   name:   'Sanoh Photography Studio',
-  address:'Kaloum, Avenue de la République',
+  address:'Kankan, Avenue de la République',
   city:   'Conakry, Guinée',
-  phone:  '+224 620 00 00 00',
+  phone:  '+224 610 00 31 71',
   email:  'contact@sanohphotography.com',
   hours:  [
     { day: 'Lundi — Vendredi', time: '08h — 19h' },
@@ -241,7 +241,7 @@ const ContactForm = () => {
             type="text" required
             value={form.name}
             onChange={e => setForm({ ...form, name: e.target.value })}
-            placeholder="Mamadou Diallo"
+            placeholder="Ousmane Sanoh"
             className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors text-sm"
           />
         </div>
@@ -337,7 +337,7 @@ const ContactSection = () => (
           <span className="text-amber-500 italic font-light">projet</span>
         </h2>
         <p className="text-gray-400 max-w-xl mx-auto text-sm sm:text-base">
-          Basés à Conakry, nous intervenons partout en Guinée et dans la sous-région.
+          Basés à Kankan, nous intervenons partout en Guinée et dans la sous-région.
           Contactez-nous pour un devis gratuit sous 24h.
         </p>
       </div>
@@ -404,8 +404,8 @@ const ContactSection = () => (
           <div className="flex items-center gap-3 px-4 py-3 bg-white/3 border border-white/5 rounded-xl">
             <span className="text-2xl">🇬🇳</span>
             <div>
-              <p className="text-sm font-semibold text-white">Conakry, Guinée</p>
-              <p className="text-xs text-gray-400">Kaloum · Avenue de la République</p>
+              <p className="text-sm font-semibold text-white">Kankan, Guinée</p>
+              <p className="text-xs text-gray-400">Kankan · Avenue de la République</p>
             </div>
             <a
               href={`https://www.openstreetmap.org/?mlat=${STUDIO.lat}&mlon=${STUDIO.lng}#map=16/${STUDIO.lat}/${STUDIO.lng}`}
